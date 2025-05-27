@@ -17,7 +17,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "copyfiles -f build/index.html build/404.html",
+    "postbuild": "powershell Copy-Item -Path build/index.html -Destination build/404.html -Force",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
