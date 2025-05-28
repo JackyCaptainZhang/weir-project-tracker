@@ -51,7 +51,7 @@ function ConfirmModal({ visible, title, content, onOk, onCancel }) {
 }
 
 function DepartmentBlock({
-  dep, idx, nodeSize, fontSize, arrowLength, ballSize, ballOffset, checklistWidth, checklist, onCheck, onComment, canOperate, hovered, setHovered, setPopup, popup, isCurrent, detailPopupRef, userDepartmentId, projectId, refreshChecklists, isOrange, showBall, onlyCircleAndArrow, onlyCard, setChecklists, departments
+  dep, idx, nodeSize, fontSize, arrowLength, ballSize, ballOffset, checklistWidth, checklist, onCheck, onComment, canOperate, hovered, setHovered, setPopup, popup, isCurrent, detailPopupRef, userDepartmentId, projectId, refreshChecklists, isOrange, showBall, onlyCircleAndArrow, onlyCard, setChecklists, departments, isAdmin
 }) {
   const [popupDirection, setPopupDirection] = useState('right');
   const itemRefs = useRef([]);
@@ -114,7 +114,13 @@ function DepartmentBlock({
     setLoadingTemplates(false);
   };
 
-  const isOwnDept = dep._id === userDepartmentId;
+  // 只判断本部门，不包含 isAdmin
+  const isOwnDept = (
+    (checklist.department && String(checklist.department) === String(userDepartmentId)) ||
+    (checklist.department && String(checklist.department._id) === String(userDepartmentId))
+  );
+  // debug 打印
+  console.log('checklist.department:', checklist.department, 'userDepartmentId:', userDepartmentId, 'isOwnDept:', isOwnDept, 'isAdmin:', isAdmin);
 
   if (onlyCircleAndArrow) {
     return (
@@ -144,7 +150,7 @@ function DepartmentBlock({
           <span style={{ color: '#00c800', fontSize: 22 }}>{checklist.progress || 0}%</span>
         </div>
         {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}
-        {isOwnDept && checklist.progress !== 100 && (
+        {(isAdmin || isOwnDept) && checklist.progress !== 100 && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
             <button
               style={{
@@ -181,25 +187,19 @@ function DepartmentBlock({
           </div>
         )}
         {checklist && checklist.items && checklist.items.length > 0 ? checklist.items.map((item, itemIdx) => {
-          const isOwnDept = checklist.department?._id?.toString() === userDepartmentId?.toString();
+          // 强制status默认值
+          const status = item.status || 'incomplete';
           return (
             <div key={item._id || itemIdx} style={{ marginBottom: 18, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <input
                   type="checkbox"
                   readOnly
-                  style={{ marginRight: 10, cursor: isOwnDept ? 'pointer' : 'not-allowed', width: 18, height: 18 }}
-                  checked={item.status === 'complete'}
-                  disabled={!isOwnDept || item.status === 'complete'}
+                  style={{ marginRight: 10, cursor: (isAdmin || isOwnDept) ? 'pointer' : 'not-allowed', width: 18, height: 18 }}
+                  checked={status === 'complete'}
+                  disabled={!(isAdmin || isOwnDept) || status === 'complete'}
                   onClick={async () => {
-                    if (isOwnDept && item.status !== 'complete') {
-                      // 先本地更新
-                      setChecklists(prev => prev.map((cl, clIdx) =>
-                        cl.department === dep
-                          ? { ...cl, items: cl.items.map((it, itIdx) => itIdx === itemIdx ? { ...it, status: 'complete' } : it) }
-                          : cl
-                      ));
-                      // 弹窗填写评论
+                    if ((isAdmin || isOwnDept) && status !== 'complete') {
                       setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id });
                     }
                   }}
@@ -248,7 +248,7 @@ function DepartmentBlock({
           <span style={{ color: '#00c800', fontSize: 22 }}>{checklist.progress || 0}%</span>
         </div>
         {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}
-        {isOwnDept && checklist.progress !== 100 && (
+        {(isAdmin || isOwnDept) && checklist.progress !== 100 && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
             <button
               style={{
@@ -285,25 +285,19 @@ function DepartmentBlock({
           </div>
         )}
         {checklist && checklist.items && checklist.items.length > 0 ? checklist.items.map((item, itemIdx) => {
-          const isOwnDept = checklist.department?._id?.toString() === userDepartmentId?.toString();
+          // 强制status默认值
+          const status = item.status || 'incomplete';
           return (
             <div key={item._id || itemIdx} style={{ marginBottom: 18, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <input
                   type="checkbox"
                   readOnly
-                  style={{ marginRight: 10, cursor: isOwnDept ? 'pointer' : 'not-allowed', width: 18, height: 18 }}
-                  checked={item.status === 'complete'}
-                  disabled={!isOwnDept || item.status === 'complete'}
+                  style={{ marginRight: 10, cursor: (isAdmin || isOwnDept) ? 'pointer' : 'not-allowed', width: 18, height: 18 }}
+                  checked={status === 'complete'}
+                  disabled={!(isAdmin || isOwnDept) || status === 'complete'}
                   onClick={async () => {
-                    if (isOwnDept && item.status !== 'complete') {
-                      // 先本地更新
-                      setChecklists(prev => prev.map((cl, clIdx) =>
-                        cl.department === dep
-                          ? { ...cl, items: cl.items.map((it, itIdx) => itIdx === itemIdx ? { ...it, status: 'complete' } : it) }
-                          : cl
-                      ));
-                      // 弹窗填写评论
+                    if ((isAdmin || isOwnDept) && status !== 'complete') {
                       setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id });
                     }
                   }}
@@ -465,6 +459,10 @@ function DepartmentBlock({
         placeholder="检查项内容"
         onOk={async (content) => {
           if (!content || loadingAction) return;
+          if (!checklist._id) {
+            alert('无法添加检查项：部门清单不存在');
+            return;
+          }
           setLoadingAction(true);
           try {
             await axios.post('/api/checklist/item/batch-add', {
@@ -505,6 +503,7 @@ const ProjectDetail = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userDepartmentName = user.department;
   const userDepartmentId = departments.find(dep => dep.name === userDepartmentName)?._id;
+  const isAdmin = !!user.isAdmin;
 
   // 刷新project
   const refreshProject = async () => {
@@ -520,7 +519,9 @@ const ProjectDetail = () => {
       const checklistRes = await axios.get(`/api/checklist/department/list-with-items?projectId=${projectId}`);
       setChecklists(checklistRes.data);
       await refreshProject();
-    } catch {}
+    } catch (err) {
+      console.error('Failed to refresh checklists:', err);
+    }
   };
 
   useEffect(() => {
@@ -606,7 +607,15 @@ const ProjectDetail = () => {
               <div style={{ background: '#00c800', color: '#fff', padding: '14px 28px', borderRadius: 12, marginBottom: 18, fontSize: 20, minWidth: 120, textAlign: 'center' }}>Start at {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '---'}</div>
             </div>
             {departments.map((dep, idx) => {
-              const checklist = checklists.find(cl => cl.department?._id?.toString() === dep._id?.toString()) || { department: dep, items: [], progress: 0 };
+              const checklist = checklists.find(cl => {
+                if (typeof cl.department === 'string') {
+                  return cl.department === dep._id;
+                }
+                if (cl.department && cl.department._id) {
+                  return cl.department._id === dep._id;
+                }
+                return false;
+              }) || { department: dep, items: [], progress: 0 };
               return (
                 <DepartmentBlock
                   key={dep._id}
@@ -634,6 +643,7 @@ const ProjectDetail = () => {
                   refreshChecklists={refreshChecklists}
                   setChecklists={setChecklists}
                   departments={departments}
+                  isAdmin={isAdmin}
                 />
               );
             })}
@@ -662,15 +672,28 @@ const ProjectDetail = () => {
               if (e.target === e.currentTarget) setPopup(null);
             }}
           >
-            <ChecklistItemPopup
-              mode={popup.mode}
-              onClose={() => setPopup(null)}
-              title={(popup.depIdx !== undefined && popup.itemIdx !== undefined && checklists.find(cl => cl.department._id === departments[popup.depIdx]._id) && checklists.find(cl => cl.department._id === departments[popup.depIdx]._id).items[popup.itemIdx]) ? `${departments[popup.depIdx].name}: ${checklists.find(cl => cl.department._id === departments[popup.depIdx]._id).items[popup.itemIdx].content}` : undefined}
-              itemId={popup.itemId}
-              itemDepartment={popup.depIdx !== undefined ? departments[popup.depIdx].name : undefined}
-              userDepartment={userDepartmentId}
-              refreshChecklists={refreshChecklists}
-            />
+            {popup && popup.mode === 'detail' && (
+              <ChecklistItemPopup
+                mode="detail"
+                onClose={() => setPopup(null)}
+                title={checklists[popup.depIdx]?.items[popup.itemIdx]?.content}
+                itemId={popup.itemId}
+                itemDepartment={checklists[popup.depIdx]?.department}
+                userDepartment={userDepartmentId}
+                refreshChecklists={refreshChecklists}
+                isAdmin={isAdmin}
+              />
+            )}
+            {popup && popup.mode === 'complete' && (
+              <ChecklistItemPopup
+                mode="complete"
+                onClose={() => setPopup(null)}
+                title={checklists[popup.depIdx]?.items[popup.itemIdx]?.content}
+                itemId={popup.itemId}
+                refreshChecklists={refreshChecklists}
+                isAdmin={isAdmin}
+              />
+            )}
           </div>
         )}
       </div>

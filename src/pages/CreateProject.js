@@ -86,11 +86,15 @@ const CreateProject = () => {
     setShowConfirm(false);
     setLoading(true);
     try {
-      await axios.post('/api/project/add', { name });
-      setSuccess('Project created successfully!');
-      setName('');
+      const res = await axios.post('/api/project/add', { name });
+      if (res.data.project && res.data.checklists) {
+        setSuccess('Project created successfully!');
+        setName('');
+      } else {
+        throw new Error('Project created but checklists not initialized');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Create failed');
+      setError(err.response?.data?.message || err.message || 'Create failed');
     } finally {
       setLoading(false);
     }

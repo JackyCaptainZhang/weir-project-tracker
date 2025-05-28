@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from '../api/axiosInstance';
 
 // mode: 'complete' | 'detail'
-const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepartment, userDepartment, refreshChecklists }) => {
+const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepartment, userDepartment, refreshChecklists, isAdmin }) => {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -62,8 +62,8 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
   if (!item) return null;
   return (
     <div style={{ background: '#fff8a6', border: '1px solid #ccc', borderRadius: 8, padding: 20, minWidth: 320, maxWidth: 400, position: 'relative' }}>
-      {/* 右上角添加评论按钮，仅本部门可见 */}
-      {itemDepartment && userDepartment && itemDepartment === userDepartment && !showCommentInput && (
+      {/* 右上角添加评论按钮，仅本部门或管理员可见 */}
+      {(isAdmin || (itemDepartment && userDepartment && itemDepartment === userDepartment)) && !showCommentInput && (
         <button
           style={{ position: 'absolute', top: 16, right: 18, background: '#00b800', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
           onClick={() => setShowCommentInput(true)}
