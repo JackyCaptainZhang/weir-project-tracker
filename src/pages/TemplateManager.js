@@ -91,7 +91,7 @@ const TemplateManager = () => {
       const res = await axios.get('/api/department/list', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setDepartments(res.data.map(dep => dep.name));
+      setDepartments(res.data);
     } catch (err) {
       setDepartments([]);
     }
@@ -295,7 +295,7 @@ const TemplateManager = () => {
                   <>
                     Department: <select value={editing.department} onChange={e => setEditing({ ...editing, department: e.target.value })}>
                       {departments.map(dep => (
-                        <option key={dep} value={dep}>{dep}</option>
+                        <option key={dep._id} value={dep._id}>{dep.name}</option>
                       ))}
                     </select>
                   </>

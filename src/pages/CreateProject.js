@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import axios from '../api/axiosInstance';
-import departments from '../config/departments';
 
 // 通用确认弹窗组件
 function ConfirmModal({ visible, title, content, onOk, onCancel }) {
@@ -31,6 +30,7 @@ const CreateProject = () => {
   const [defaultTemplates, setDefaultTemplates] = useState([]); // [{department, templateId}]
   const [templateNames, setTemplateNames] = useState({}); // {department: templateName}
   const [fetchingTpl, setFetchingTpl] = useState(false);
+  const [departments, setDepartments] = useState([]);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canCreate = user.department === 'Sales' || user.isAdmin;
@@ -65,6 +65,9 @@ const CreateProject = () => {
 
   useEffect(() => {
     fetchDefaultTemplates();
+    axios.get('/api/department/list')
+      .then(res => setDepartments(res.data))
+      .catch(() => setDepartments([]));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -96,8 +99,8 @@ const CreateProject = () => {
   // 生成弹窗内容
   const confirmContent = `你即将创建项目【${name}】\n检查单会按照默认模板初始化：\n` +
     departments.map(dep => {
-      const tplName = templateNames[dep] || '无默认模板';
-      return `${dep}：${tplName}`;
+      const tplName = templateNames[dep._id] || '无默认模板';
+      return `${dep._id}：${dep.name} - ${tplName}`;
     }).join('\n');
 
   return (

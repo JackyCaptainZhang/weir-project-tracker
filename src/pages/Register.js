@@ -66,7 +66,7 @@ const Register = () => {
         <select name="department" value={form.department} onChange={handleChange} style={{ marginBottom: 10, height: 32 }}>
           <option value="">Select department</option>
           {departments.map(dep => (
-            <option key={dep._id || dep.name} value={dep.name}>{dep.name}</option>
+            <option key={dep._id} value={dep._id}>{dep.name}</option>
           ))}
         </select>
         <label>Password</label>

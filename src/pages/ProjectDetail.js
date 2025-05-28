@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Navbar from '../components/Navbar';
 import ChecklistItemPopup from '../components/ChecklistItemPopup';
-import departments from '../config/departments';
 
 // 通用输入弹窗组件
 function InputModal({ visible, title, placeholder, onOk, onCancel }) {
@@ -52,7 +51,7 @@ function ConfirmModal({ visible, title, content, onOk, onCancel }) {
 }
 
 function DepartmentBlock({
-  dep, idx, nodeSize, fontSize, arrowLength, ballSize, ballOffset, checklistWidth, checklist, onCheck, onComment, canOperate, hovered, setHovered, setPopup, popup, isCurrent, detailPopupRef, userDepartment, projectId, refreshChecklists, isOrange, showBall, onlyCircleAndArrow, onlyCard, setChecklists
+  dep, idx, nodeSize, fontSize, arrowLength, ballSize, ballOffset, checklistWidth, checklist, onCheck, onComment, canOperate, hovered, setHovered, setPopup, popup, isCurrent, detailPopupRef, userDepartmentId, projectId, refreshChecklists, isOrange, showBall, onlyCircleAndArrow, onlyCard, setChecklists, departments
 }) {
   const [popupDirection, setPopupDirection] = useState('right');
   const itemRefs = useRef([]);
@@ -67,6 +66,7 @@ function DepartmentBlock({
   const [showInputModal, setShowInputModal] = useState(false);
   const [confirmLoad, setConfirmLoad] = useState({ show: false, tpl: null });
   const [loadingAction, setLoadingAction] = useState(false);
+
 
   useEffect(() => {
     if (!hovered || hovered.depIdx !== idx) return;
@@ -100,7 +100,7 @@ function DepartmentBlock({
       const res = await axios.get('/api/template', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      const list = res.data.filter(t => t.department === dep);
+      const list = res.data.filter(t => t.department._id === dep._id);
       setTemplates(list);
       // 获取默认模板id
       const defRes = await axios.get('/api/default-template/my', {
@@ -114,10 +114,12 @@ function DepartmentBlock({
     setLoadingTemplates(false);
   };
 
+  const isOwnDept = dep._id === userDepartmentId;
+
   if (onlyCircleAndArrow) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', height: nodeSize }}>
-        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: nodeColor, border: '2.5px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: fontSize, color: nodeTextColor, zIndex: 2, overflow: 'hidden', textAlign: 'center', lineHeight: 1.1, padding: 6 }}>{dep}</div>
+        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: nodeColor, border: '2.5px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, color: nodeTextColor, zIndex: 2, overflow: 'hidden', textAlign: 'center', lineHeight: 1.1, padding: 6, maxWidth: '90%', overflowWrap: 'break-word' }}>{dep.name}</div>
         {idx < departments.length - 1 && (
           <div style={{ position: 'relative', width: arrowLength, height: nodeSize, display: 'flex', alignItems: 'center' }}>
             <svg width={arrowLength} height={ballSize+8} style={{ display: 'block' }}>
@@ -142,7 +144,7 @@ function DepartmentBlock({
           <span style={{ color: '#00c800', fontSize: 22 }}>{checklist.progress || 0}%</span>
         </div>
         {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}
-        {dep === userDepartment && checklist.progress !== 100 && (
+        {isOwnDept && checklist.progress !== 100 && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
             <button
               style={{
@@ -179,7 +181,7 @@ function DepartmentBlock({
           </div>
         )}
         {checklist && checklist.items && checklist.items.length > 0 ? checklist.items.map((item, itemIdx) => {
-          const isOwnDept = dep === userDepartment;
+          const isOwnDept = checklist.department?._id?.toString() === userDepartmentId?.toString();
           return (
             <div key={item._id || itemIdx} style={{ marginBottom: 18, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -223,7 +225,7 @@ function DepartmentBlock({
       {/* 顶部：固定高度，圆圈+箭头垂直居中 */}
       <div style={{ height: nodeSize + 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {/* 部门圆圈 */}
-        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: nodeColor, border: '2.5px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: fontSize, color: nodeTextColor, zIndex: 2, overflow: 'hidden', textAlign: 'center', lineHeight: 1.1, padding: 6 }}>{dep}</div>
+        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: nodeColor, border: '2.5px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, color: nodeTextColor, zIndex: 2, overflow: 'hidden', textAlign: 'center', lineHeight: 1.1, padding: 6, maxWidth: '90%', overflowWrap: 'break-word' }}>{dep.name}</div>
         {/* 箭头svg+小球 */}
         {idx < departments.length - 1 && (
           <div style={{ position: 'relative', width: arrowLength, height: nodeSize, display: 'flex', alignItems: 'center' }}>
@@ -246,7 +248,7 @@ function DepartmentBlock({
           <span style={{ color: '#00c800', fontSize: 22 }}>{checklist.progress || 0}%</span>
         </div>
         {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}
-        {dep === userDepartment && checklist.progress !== 100 && (
+        {isOwnDept && checklist.progress !== 100 && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
             <button
               style={{
@@ -283,7 +285,7 @@ function DepartmentBlock({
           </div>
         )}
         {checklist && checklist.items && checklist.items.length > 0 ? checklist.items.map((item, itemIdx) => {
-          const isOwnDept = dep === userDepartment;
+          const isOwnDept = checklist.department?._id?.toString() === userDepartmentId?.toString();
           return (
             <div key={item._id || itemIdx} style={{ marginBottom: 18, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -499,8 +501,10 @@ const ProjectDetail = () => {
   const ballSize = 24;
   const ballOffset = arrowLength / 2 - ballSize / 2;
   const detailPopupRef = useRef(null);
+  const [departments, setDepartments] = useState([]);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userDepartment = user.department;
+  const userDepartmentName = user.department;
+  const userDepartmentId = departments.find(dep => dep.name === userDepartmentName)?._id;
 
   // 刷新project
   const refreshProject = async () => {
@@ -532,7 +536,6 @@ const ProjectDetail = () => {
         const checklistRes = await axios.get(`/api/checklist/department/list-with-items?projectId=${projectId}`);
         if (!isMounted) return;
         const checklistsRaw = checklistRes.data;
-        console.log('checklistsRaw', checklistsRaw);
         // 并发获取每个checklist的item
         const checklistsWithItems = await Promise.all(
           checklistsRaw.map(async (cl) => {
@@ -540,7 +543,6 @@ const ProjectDetail = () => {
             return { ...cl, items: itemsRes.data };
           })
         );
-        console.log('checklistsWithItems', checklistsWithItems);
         if (!isMounted) return;
         setChecklists(checklistsWithItems);
         setLoading(false);
@@ -552,6 +554,12 @@ const ProjectDetail = () => {
     fetchData();
     return () => { isMounted = false; };
   }, [projectId]);
+
+  useEffect(() => {
+    axios.get('/api/department/list')
+      .then(res => setDepartments(res.data))
+      .catch(() => setDepartments([]));
+  }, []);
 
   // 点击空白处关闭详情弹窗
   useEffect(() => {
@@ -568,8 +576,6 @@ const ProjectDetail = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
   if (!project) return null;
-  console.log('project', project);
-  console.log('checklists', checklists);
 
   // checklist数据结构：project.checklists为数组，每个部门一个
   // checklist: { department: 'Sales', items: [ { _id, name, completed, ... } ] }
@@ -577,10 +583,12 @@ const ProjectDetail = () => {
   // 计算小球和橙色部门逻辑
   // 1. 找到第一个未完成的部门索引
   const firstUnfinishedIdx = departments.findIndex(dep => {
-    const cl = checklists.find(cl => cl.department === dep);
+    const cl = checklists.find(cl => cl.department._id === dep._id);
     return !cl || (cl.progress || 0) < 100;
   });
   // 2. 全部完成时不显示小球和橙色
+
+  if (!departments.length) return null;
 
   return (
     <div>
@@ -597,34 +605,38 @@ const ProjectDetail = () => {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: nodeSize+24 }}>
               <div style={{ background: '#00c800', color: '#fff', padding: '14px 28px', borderRadius: 12, marginBottom: 18, fontSize: 20, minWidth: 120, textAlign: 'center' }}>Start at {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '---'}</div>
             </div>
-            {departments.map((dep, idx) => (
-              <DepartmentBlock
-                key={dep}
-                dep={dep}
-                idx={idx}
-                nodeSize={nodeSize}
-                fontSize={fontSize}
-                arrowLength={arrowLength}
-                ballSize={ballSize}
-                ballOffset={ballOffset}
-                checklistWidth={checklistWidth}
-                checklist={checklists.find(cl => cl.department === dep) || { items: [] }}
-                onCheck={()=>{}}
-                onComment={()=>{}}
-                canOperate={false}
-                hovered={hovered}
-                setHovered={setHovered}
-                setPopup={setPopup}
-                popup={popup}
-                isOrange={firstUnfinishedIdx === idx}
-                showBall={firstUnfinishedIdx > 0 && idx === firstUnfinishedIdx - 1}
-                detailPopupRef={detailPopupRef}
-                userDepartment={userDepartment}
-                projectId={projectId}
-                refreshChecklists={refreshChecklists}
-                setChecklists={setChecklists}
-              />
-            ))}
+            {departments.map((dep, idx) => {
+              const checklist = checklists.find(cl => cl.department?._id?.toString() === dep._id?.toString()) || { department: dep, items: [], progress: 0 };
+              return (
+                <DepartmentBlock
+                  key={dep._id}
+                  dep={dep}
+                  idx={idx}
+                  nodeSize={nodeSize}
+                  fontSize={fontSize}
+                  arrowLength={arrowLength}
+                  ballSize={ballSize}
+                  ballOffset={ballOffset}
+                  checklistWidth={checklistWidth}
+                  checklist={checklist}
+                  onCheck={()=>{}}
+                  onComment={()=>{}}
+                  canOperate={false}
+                  hovered={hovered}
+                  setHovered={setHovered}
+                  setPopup={setPopup}
+                  popup={popup}
+                  isOrange={firstUnfinishedIdx === idx}
+                  showBall={firstUnfinishedIdx > 0 && idx === firstUnfinishedIdx - 1}
+                  detailPopupRef={detailPopupRef}
+                  userDepartmentId={userDepartmentId}
+                  projectId={projectId}
+                  refreshChecklists={refreshChecklists}
+                  setChecklists={setChecklists}
+                  departments={departments}
+                />
+              );
+            })}
             {/* Finish */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: nodeSize+24 }}>
               <div style={{ background: '#009cff', color: '#fff', padding: '14px 28px', borderRadius: 12, marginBottom: 18, fontSize: 20, minWidth: 100, textAlign: 'center' }}>Finish</div>
@@ -653,10 +665,10 @@ const ProjectDetail = () => {
             <ChecklistItemPopup
               mode={popup.mode}
               onClose={() => setPopup(null)}
-              title={(popup.depIdx !== undefined && popup.itemIdx !== undefined && checklists.find(cl => cl.department === departments[popup.depIdx]) && checklists.find(cl => cl.department === departments[popup.depIdx]).items[popup.itemIdx]) ? `${departments[popup.depIdx]}: ${checklists.find(cl => cl.department === departments[popup.depIdx]).items[popup.itemIdx].content}` : undefined}
+              title={(popup.depIdx !== undefined && popup.itemIdx !== undefined && checklists.find(cl => cl.department._id === departments[popup.depIdx]._id) && checklists.find(cl => cl.department._id === departments[popup.depIdx]._id).items[popup.itemIdx]) ? `${departments[popup.depIdx].name}: ${checklists.find(cl => cl.department._id === departments[popup.depIdx]._id).items[popup.itemIdx].content}` : undefined}
               itemId={popup.itemId}
-              itemDepartment={popup.depIdx !== undefined ? departments[popup.depIdx] : undefined}
-              userDepartment={userDepartment}
+              itemDepartment={popup.depIdx !== undefined ? departments[popup.depIdx].name : undefined}
+              userDepartment={userDepartmentId}
               refreshChecklists={refreshChecklists}
             />
           </div>
