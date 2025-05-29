@@ -88,7 +88,7 @@ function DepartmentBlock({
   if (isOrange) {
     nodeColor = '#ffa500';
     nodeTextColor = '#fff';
-  } else if ((checklist?.progress || 0) === 100) {
+  } else if (Number(checklist?.progress) === 100) {
     nodeColor = '#00c800';
     nodeTextColor = '#fff';
   }
@@ -119,8 +119,6 @@ function DepartmentBlock({
     (checklist.department && String(checklist.department) === String(userDepartmentId)) ||
     (checklist.department && String(checklist.department._id) === String(userDepartmentId))
   );
-  // debug 打印
-  console.log('checklist.department:', checklist.department, 'userDepartmentId:', userDepartmentId, 'isOwnDept:', isOwnDept, 'isAdmin:', isAdmin);
 
   if (onlyCircleAndArrow) {
     return (
@@ -200,13 +198,13 @@ function DepartmentBlock({
                   disabled={!(isAdmin || isOwnDept) || status === 'complete'}
                   onClick={async () => {
                     if ((isAdmin || isOwnDept) && status !== 'complete') {
-                      setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id });
+                      setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id, isOwnDept });
                     }
                   }}
                 />
                 <span
                   style={{ fontSize: 18, cursor: 'pointer' }}
-                  onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id })}
+                  onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id, isOwnDept })}
                 >[
                   {item.createdBy === '683745aeaed0e823da34ca00' || item.createdByName === 'template-system'
                     ? 'template-system'
@@ -303,13 +301,13 @@ function DepartmentBlock({
                   disabled={!(isAdmin || isOwnDept) || status === 'complete'}
                   onClick={async () => {
                     if ((isAdmin || isOwnDept) && status !== 'complete') {
-                      setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id });
+                      setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id, isOwnDept });
                     }
                   }}
                 />
                 <span
                   style={{ fontSize: 18, cursor: 'pointer' }}
-                  onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id })}
+                  onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id, isOwnDept })}
                 >[
                   {item.createdBy === '683745aeaed0e823da34ca00' || item.createdByName === 'template-system'
                     ? 'template-system'
@@ -594,8 +592,16 @@ const ProjectDetail = () => {
   // 计算小球和橙色部门逻辑
   // 1. 找到第一个未完成的部门索引
   const firstUnfinishedIdx = departments.findIndex(dep => {
-    const cl = checklists.find(cl => cl.department._id === dep._id);
-    return !cl || (cl.progress || 0) < 100;
+    const cl = checklists.find(cl => {
+      if (typeof cl.department === 'string') {
+        return cl.department === dep._id;
+      }
+      if (cl.department && cl.department._id) {
+        return cl.department._id === dep._id;
+      }
+      return false;
+    });
+    return !cl || Number(cl.progress) < 100;
   });
   // 2. 全部完成时不显示小球和橙色
 
@@ -645,7 +651,7 @@ const ProjectDetail = () => {
                   setHovered={setHovered}
                   setPopup={setPopup}
                   popup={popup}
-                  isOrange={firstUnfinishedIdx === idx}
+                  isOrange={firstUnfinishedIdx >= 0 && firstUnfinishedIdx === idx}
                   showBall={firstUnfinishedIdx > 0 && idx === firstUnfinishedIdx - 1}
                   detailPopupRef={detailPopupRef}
                   userDepartmentId={userDepartmentId}
@@ -683,16 +689,24 @@ const ProjectDetail = () => {
             }}
           >
             {popup && popup.mode === 'detail' && (
-              <ChecklistItemPopup
-                mode="detail"
-                onClose={() => setPopup(null)}
-                title={checklists[popup.depIdx]?.items[popup.itemIdx]?.content}
-                itemId={popup.itemId}
-                itemDepartment={checklists[popup.depIdx]?.department}
-                userDepartment={userDepartmentId}
-                refreshChecklists={refreshChecklists}
-                isAdmin={isAdmin}
-              />
+              (() => {
+                const currentChecklist = checklists[popup.depIdx];
+                const currentItem = currentChecklist?.items[popup.itemIdx];
+                return (
+                  <ChecklistItemPopup
+                    mode="detail"
+                    onClose={() => setPopup(null)}
+                    title={currentItem?.content}
+                    itemId={popup.itemId}
+                    itemDepartment={currentChecklist?.department}
+                    userDepartment={userDepartmentId}
+                    refreshChecklists={refreshChecklists}
+                    isAdmin={isAdmin}
+                    userId={user._id || user.id}
+                    isOwnDept={popup.isOwnDept}
+                  />
+                );
+              })()
             )}
             {popup && popup.mode === 'complete' && (
               <ChecklistItemPopup

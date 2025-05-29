@@ -30,6 +30,7 @@ const Login = () => {
       const dept = res.data.department;
       const departmentId = res.data.departmentId || (typeof dept === 'object' ? dept._id : dept);
       localStorage.setItem('user', JSON.stringify({
+        _id: res.data._id || res.data.id,
         username: res.data.username,
         department: dept,
         departmentId,

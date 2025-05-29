@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from '../api/axiosInstance';
 
 // mode: 'complete' | 'detail'
-const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepartment, userDepartment, refreshChecklists, isAdmin }) => {
+const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepartment, userDepartment, refreshChecklists, isAdmin, userId, isOwnDept }) => {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -11,6 +11,9 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
   const [commentLoading, setCommentLoading] = useState(false);
   const [completeComment, setCompleteComment] = useState('');
   const [completeLoading, setCompleteLoading] = useState(false);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [showAssignConfirm, setShowAssignConfirm] = useState(false);
+  const [assignError, setAssignError] = useState('');
 
   useEffect(() => {
     if (mode !== 'detail' || !itemId) return;
@@ -20,6 +23,8 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
       .then(res => { setItem(res.data); setLoading(false); })
       .catch(() => { setError('Failed to load item'); setLoading(false); });
   }, [mode, itemId]);
+
+  // 彻底移除本地isOwnDept/canOperate判断，直接用props.isOwnDept
 
   if (mode === 'complete') {
     return (
@@ -63,11 +68,18 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
   return (
     <div style={{ background: '#fff8a6', border: '1px solid #ccc', borderRadius: 8, padding: 20, minWidth: 320, maxWidth: 400, position: 'relative' }}>
       {/* 右上角添加评论按钮，仅本部门或管理员可见 */}
-      {(isAdmin || (itemDepartment && userDepartment && itemDepartment === userDepartment)) && !showCommentInput && (
-        <button
-          style={{ position: 'absolute', top: 16, right: 18, background: '#00b800', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
-          onClick={() => setShowCommentInput(true)}
-        >添加评论</button>
+      {(isAdmin || isOwnDept) && !showCommentInput && item?.status !== 'complete' && (
+        <>
+          <button
+            style={{ position: 'absolute', top: 16, right: 18, background: '#00b800', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+            onClick={() => setShowCommentInput(true)}
+          >添加评论</button>
+          <button
+            style={{ position: 'absolute', top: 16, right: 120, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: assignLoading ? 'not-allowed' : 'pointer', marginRight: 8, opacity: assignLoading ? 0.7 : 1 }}
+            disabled={assignLoading}
+            onClick={() => setShowAssignConfirm(true)}
+          >分配该任务给自己</button>
+        </>
       )}
       {/* 评论输入框 */}
       {showCommentInput && (
@@ -106,6 +118,44 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
                 }
               }}
             >提交</button>
+          </div>
+        </div>
+      )}
+      {/* 分配确认弹窗 */}
+      {showAssignConfirm && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }} onClick={e => { if (e.target === e.currentTarget) setShowAssignConfirm(false); }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 28, minWidth: 340, boxShadow: '0 4px 24px rgba(0,0,0,0.13)' }}>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 18 }}>确认分配</div>
+            <div style={{ fontSize: 16, marginBottom: 18 }}>是否要将该任务分配给自己？</div>
+            {assignError && <div style={{ color: 'red', marginBottom: 10 }}>{assignError}</div>}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16 }}>
+              <button onClick={() => setShowAssignConfirm(false)} style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: '#ccc', color: '#333', fontSize: 16 }} disabled={assignLoading}>取消</button>
+              <button
+                disabled={assignLoading}
+                style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: assignLoading ? '#aaa' : '#1976d2', color: '#fff', fontSize: 16, fontWeight: 600, cursor: assignLoading ? 'not-allowed' : 'pointer' }}
+                onClick={async () => {
+                  setAssignLoading(true);
+                  setAssignError('');
+                  try {
+                    await axios.put('/api/checklist/item/reassign', {
+                      itemId: itemId,
+                      userId: userId
+                    }, {
+                      headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }
+                    });
+                    setShowAssignConfirm(false);
+                    if (typeof refreshChecklists === 'function') await refreshChecklists();
+                    onClose && onClose();
+                  } catch (err) {
+                    setAssignError('分配失败: ' + (err.response?.data?.message || err.message));
+                  } finally {
+                    setAssignLoading(false);
+                  }
+                }}
+              >确认</button>
+            </div>
           </div>
         </div>
       )}

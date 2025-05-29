@@ -80,7 +80,6 @@ const TemplateManager = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setDefaultTemplates(res.data || []);
-      console.log('defaultTemplates:', res.data || []);
     } catch (err) {
       setDefaultTemplates([]);
     }
@@ -112,7 +111,7 @@ const TemplateManager = () => {
 
   // New template
   const handleNew = () => {
-    const departmentId = user.department._id || user.department;
+    const departmentId = user.departmentId;
     if (!departmentId) {
       alert('Department ID is required!');
       return;
@@ -152,9 +151,6 @@ const TemplateManager = () => {
       }
       requestData.departmentId = departmentId;
     }
-
-    // 打印请求数据，方便调试
-    console.log('Request data:', requestData);
 
     try {
       if (isNew) {
@@ -304,7 +300,6 @@ const TemplateManager = () => {
                             {!isDefault && (
                               <button
                                 onClick={() => {
-                                  console.log('Set default payload:', { department: deptId, templateId: tpl._id });
                                   handleSetDefault(deptId, tpl._id);
                                 }}
                                 style={{ marginLeft: 8 }}
@@ -344,7 +339,7 @@ const TemplateManager = () => {
                 {user.isAdmin ? (
                   <>
                     Department: <select 
-                      value={editing.department._id || editing.department} 
+                      value={editing.department}
                       onChange={e => setEditing({ 
                         ...editing, 
                         department: e.target.value 
@@ -358,9 +353,7 @@ const TemplateManager = () => {
                 ) : (
                   <>
                     Department: <span style={{ fontWeight: 600 }}>
-                      {departments.find(d => d._id === (editing.department._id || editing.department))?.name || 
-                       user.department.name || 
-                       user.department}
+                      {departments.find(d => d._id === editing.department)?.name || user.department}
                     </span>
                   </>
                 )}

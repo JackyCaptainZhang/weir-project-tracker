@@ -108,9 +108,6 @@ const CreateProject = () => {
   };
 
   // 生成弹窗内容
-  console.log('departments:', departments);
-  console.log('defaultTemplates:', defaultTemplates);
-  console.log('allTemplates:', allTemplates);
   const confirmContent = `你即将创建项目【${name}】\n检查单会按照默认模板初始化：\n` +
     departments.map(dep => {
       // 兼容dt.department为对象或字符串
@@ -122,9 +119,7 @@ const CreateProject = () => {
       if (defaultTpl) {
         const tplObj = allTemplates.find(tpl => String(tpl._id) === String(defaultTpl.templateId?._id || defaultTpl.templateId));
         tplName = tplObj ? tplObj.name : '有默认模板';
-        console.log(`[confirmContent] 部门: ${dep.name}, dep._id: ${dep._id}, defaultTpl:`, defaultTpl, ', tplObj:', tplObj);
       } else {
-        console.log(`[confirmContent] 部门: ${dep.name}, dep._id: ${dep._id}, 没有默认模板`);
       }
       return `${dep.name} - ${tplName}`;
     }).join('\n');
