@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import ProjectCard from '../components/ProjectCard';
 import axios from '../api/axiosInstance';
 import { Link, useNavigate } from 'react-router-dom';
@@ -29,7 +28,6 @@ const AllProjects = () => {
 
   return (
     <div>
-      <Navbar />
       <div style={{ marginLeft: 250, marginTop: 60 }}>
         <input
           placeholder="Search by project name..."

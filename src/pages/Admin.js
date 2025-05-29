@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import axios from '../api/axiosInstance';
 
 const tabs = [
@@ -93,7 +92,6 @@ const Admin = () => {
 
   return (
     <div>
-      <Navbar />
       <div style={{ margin: '60px 80px' }}>
         <h2>Admin Panel</h2>
         <div style={{ display: 'flex', gap: 30, marginBottom: 30 }}>

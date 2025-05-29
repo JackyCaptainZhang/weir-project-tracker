@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import axios from '../api/axiosInstance';
 
 // 通用确认弹窗组件
@@ -126,7 +125,6 @@ const CreateProject = () => {
 
   return (
     <div>
-      <Navbar />
       <div style={{ margin: '60px 80px' }}>
         <h2>Create New Project</h2>
         {canCreate ? (

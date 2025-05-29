@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import axios from '../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,7 +21,6 @@ const Profile = () => {
 
   return (
     <div>
-      <Navbar />
       <div style={{ margin: '60px 80px' }}>
         <h2>Profile</h2>
         <div style={{ margin: '30px 0', fontSize: 18 }}>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import ProjectCard from '../components/ProjectCard';
 import axios from '../api/axiosInstance';
 import { Link, useNavigate } from 'react-router-dom';
@@ -27,10 +26,9 @@ const FinishedProjects = () => {
 
   return (
     <div>
-      <Navbar />
+      {loading && <div>Loading...</div>}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
       <div style={{ marginLeft: 250, marginTop: 60 }}>
-        {loading && <div>Loading...</div>}
-        {error && <div style={{ color: 'red' }}>{error}</div>}
         {finished.map((p) => {
           const createdDate = p.createdAt ? new Date(p.createdAt) : null;
           const finishedDate = p.finishedAt ? new Date(p.finishedAt) : null;

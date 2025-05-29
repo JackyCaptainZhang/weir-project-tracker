@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '../api/axiosInstance';
-import Navbar from '../components/Navbar';
 import ChecklistItemPopup from '../components/ChecklistItemPopup';
 
 // 通用输入弹窗组件
@@ -609,7 +608,6 @@ const ProjectDetail = () => {
 
   return (
     <div>
-      <Navbar />
       <div style={{ margin: '40px 60px' }}>
         <h2>{project.name} <span style={{ color: project.status === 'finished' ? 'gray' : 'green', fontSize: 18, marginLeft: 12 }}>
           {project.status === 'finished' ? 'Finished' : 'In Progress'}

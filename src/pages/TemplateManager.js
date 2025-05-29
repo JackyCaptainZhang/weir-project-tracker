@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../api/axiosInstance';
-import Navbar from '../components/Navbar';
 
 // 通用输入弹窗组件
 function InputModal({ visible, title, placeholder, onOk, onCancel }) {
@@ -245,150 +244,147 @@ const TemplateManager = () => {
   }, {});
 
   return (
-    <>
-      <Navbar />
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
-        <h2>Template Management</h2>
-        {loading ? <div>Loading...</div> : (
-          <>
-            <button onClick={handleNew}>Create New Template</button>
-            <div style={{ marginTop: 24 }}>
-              {Object.entries(groupedTemplates).sort().map(([deptId, tpls]) => {
-                let depObj = departments.find(dep => dep._id === deptId);
-                if (!depObj && typeof tpls[0].department === 'object' && tpls[0].department !== null) {
-                  depObj = tpls[0].department;
-                }
-                return (
-                  <div key={deptId} style={{ marginBottom: 32 }}>
-                    <div style={{ fontWeight: 700, fontSize: 20, margin: '16px 0 8px', color: '#b48a00' }}>
-                      {depObj ? depObj.name : deptId}
-                    </div>
-                    <ul style={{ marginLeft: 24 }}>
-                      {tpls.map(tpl => {
-                        const isDefault = isDefaultTemplate(tpl, deptId);
-                        return (
-                          <li key={tpl._id} style={{ marginBottom: 8, position: 'relative' }}>
-                            <b
-                              style={{ cursor: 'pointer', textDecoration: 'underline dotted' }}
-                              onMouseEnter={() => setHoveredTemplate(tpl)}
-                              onMouseLeave={() => setHoveredTemplate(null)}
-                            >{tpl.name}</b>
-                            {/* Tooltip for template details */}
-                            {hoveredTemplate && hoveredTemplate._id === tpl._id && (
-                              <div
-                                style={{
-                                  position: 'absolute', right: '110%', top: '50%', transform: 'translateY(-50%)', zIndex: 2000,
-                                  background: '#fff', border: '1px solid #ccc', borderRadius: 6,
-                                  boxShadow: '0 2px 12px rgba(0,0,0,0.12)', padding: 12, minWidth: 260
-                                }}
-                              >
-                                <div style={{ fontWeight: 600, marginBottom: 6 }}>{tpl.name} Details</div>
-                                <ol style={{ margin: 0, paddingLeft: 18 }}>
-                                  {tpl.content && tpl.content.length > 0 ? tpl.content.map((item, idx) => (
-                                    <li key={idx} style={{ fontSize: 15, marginBottom: 2 }}>{item}</li>
-                                  )) : <li style={{ color: '#888' }}>No items</li>}
-                                </ol>
-                              </div>
-                            )}
-                            <button onClick={() => handleEdit(tpl)} style={{ marginLeft: 8 }}>Edit</button>
-                            {!isDefault && (
-                              <button
-                                onClick={() => handleDeleteTemplate(tpl)}
-                                style={{ marginLeft: 8, color: 'red' }}
-                              >Delete</button>
-                            )}
-                            {!isDefault && (
-                              <button
-                                onClick={() => {
-                                  handleSetDefault(deptId, tpl._id);
-                                }}
-                                style={{ marginLeft: 8 }}
-                              >Set as Default</button>
-                            )}
-                            {isDefault && (
-                              <span style={{ marginLeft: 16, color: '#b48a00', fontWeight: 700, fontSize: 15, verticalAlign: 'middle' }}>默认</span>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
+      <h2>Template Management</h2>
+      {loading ? <div>Loading...</div> : (
+        <>
+          <button onClick={handleNew}>Create New Template</button>
+          <div style={{ marginTop: 24 }}>
+            {Object.entries(groupedTemplates).sort().map(([deptId, tpls]) => {
+              let depObj = departments.find(dep => dep._id === deptId);
+              if (!depObj && typeof tpls[0].department === 'object' && tpls[0].department !== null) {
+                depObj = tpls[0].department;
+              }
+              return (
+                <div key={deptId} style={{ marginBottom: 32 }}>
+                  <div style={{ fontWeight: 700, fontSize: 20, margin: '16px 0 8px', color: '#b48a00' }}>
+                    {depObj ? depObj.name : deptId}
                   </div>
-                );
-              })}
-            </div>
-          </>
-        )}
+                  <ul style={{ marginLeft: 24 }}>
+                    {tpls.map(tpl => {
+                      const isDefault = isDefaultTemplate(tpl, deptId);
+                      return (
+                        <li key={tpl._id} style={{ marginBottom: 8, position: 'relative' }}>
+                          <b
+                            style={{ cursor: 'pointer', textDecoration: 'underline dotted' }}
+                            onMouseEnter={() => setHoveredTemplate(tpl)}
+                            onMouseLeave={() => setHoveredTemplate(null)}
+                          >{tpl.name}</b>
+                          {/* Tooltip for template details */}
+                          {hoveredTemplate && hoveredTemplate._id === tpl._id && (
+                            <div
+                              style={{
+                                position: 'absolute', right: '110%', top: '50%', transform: 'translateY(-50%)', zIndex: 2000,
+                                background: '#fff', border: '1px solid #ccc', borderRadius: 6,
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.12)', padding: 12, minWidth: 260
+                              }}
+                            >
+                              <div style={{ fontWeight: 600, marginBottom: 6 }}>{tpl.name} Details</div>
+                              <ol style={{ margin: 0, paddingLeft: 18 }}>
+                                {tpl.content && tpl.content.length > 0 ? tpl.content.map((item, idx) => (
+                                  <li key={idx} style={{ fontSize: 15, marginBottom: 2 }}>{item}</li>
+                                )) : <li style={{ color: '#888' }}>No items</li>}
+                              </ol>
+                            </div>
+                          )}
+                          <button onClick={() => handleEdit(tpl)} style={{ marginLeft: 8 }}>Edit</button>
+                          {!isDefault && (
+                            <button
+                              onClick={() => handleDeleteTemplate(tpl)}
+                              style={{ marginLeft: 8, color: 'red' }}
+                            >Delete</button>
+                          )}
+                          {!isDefault && (
+                            <button
+                              onClick={() => {
+                                handleSetDefault(deptId, tpl._id);
+                              }}
+                              style={{ marginLeft: 8 }}
+                            >Set as Default</button>
+                          )}
+                          {isDefault && (
+                            <span style={{ marginLeft: 16, color: '#b48a00', fontWeight: 700, fontSize: 15, verticalAlign: 'middle' }}>默认</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
-        {/* Modal for editing/creating template */}
-        {editing && (
-          <>
-            <div style={{
-              position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
-              background: 'rgba(0,0,0,0.25)', zIndex: 1000
-            }} onClick={handleCancel} />
-            <div style={{
-              position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-              background: '#fff', borderRadius: 8, boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-              padding: 32, minWidth: 400, zIndex: 1001
-            }}>
-              <h3 style={{ marginTop: 0 }}>{isNew ? 'Create Template' : 'Edit Template'}</h3>
-              <div style={{ marginBottom: 12 }}>
-                Name: <input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                {user.isAdmin ? (
-                  <>
-                    Department: <select 
-                      value={editing.department}
-                      onChange={e => setEditing({ 
-                        ...editing, 
-                        department: e.target.value 
-                      })}
-                    >
-                      {departments.map(dep => (
-                        <option key={dep._id} value={dep._id}>{dep.name}</option>
-                      ))}
-                    </select>
-                  </>
-                ) : (
-                  <>
-                    Department: <span style={{ fontWeight: 600 }}>
-                      {departments.find(d => d._id === editing.department)?.name || user.department}
-                    </span>
-                  </>
-                )}
-              </div>
-              <div>
-                <b>Template Items:</b>
-                {editing.content.map((item, idx) => (
-                  <div key={idx} style={{ marginBottom: 6 }}>
-                    <input
-                      value={item}
-                      onChange={e => handleItemChange(idx, e.target.value)}
-                      style={{ width: 300 }}
-                    />
-                    <button onClick={() => handleRemoveItem(idx)} style={{ marginLeft: 4 }}>Delete</button>
-                  </div>
-                ))}
-                <button onClick={handleAddItem} style={{ marginTop: 8 }}>Add Item</button>
-              </div>
-              <div style={{ marginTop: 16, textAlign: 'right' }}>
-                <button onClick={handleSave}>Save</button>
-                <button onClick={handleCancel} style={{ marginLeft: 8 }}>Cancel</button>
-              </div>
+      {/* Modal for editing/creating template */}
+      {editing && (
+        <>
+          <div style={{
+            position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.25)', zIndex: 1000
+          }} onClick={handleCancel} />
+          <div style={{
+            position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+            background: '#fff', borderRadius: 8, boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+            padding: 32, minWidth: 400, zIndex: 1001
+          }}>
+            <h3 style={{ marginTop: 0 }}>{isNew ? 'Create Template' : 'Edit Template'}</h3>
+            <div style={{ marginBottom: 12 }}>
+              Name: <input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
             </div>
-          </>
-        )}
+            <div style={{ marginBottom: 12 }}>
+              {user.isAdmin ? (
+                <>
+                  Department: <select 
+                    value={editing.department}
+                    onChange={e => setEditing({ 
+                      ...editing, 
+                      department: e.target.value 
+                    })}
+                  >
+                    {departments.map(dep => (
+                      <option key={dep._id} value={dep._id}>{dep.name}</option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <>
+                  Department: <span style={{ fontWeight: 600 }}>
+                    {departments.find(d => d._id === editing.department)?.name || user.department}
+                  </span>
+                </>
+              )}
+            </div>
+            <div>
+              <b>Template Items:</b>
+              {editing.content.map((item, idx) => (
+                <div key={idx} style={{ marginBottom: 6 }}>
+                  <input
+                    value={item}
+                    onChange={e => handleItemChange(idx, e.target.value)}
+                    style={{ width: 300 }}
+                  />
+                  <button onClick={() => handleRemoveItem(idx)} style={{ marginLeft: 4 }}>Delete</button>
+                </div>
+              ))}
+              <button onClick={handleAddItem} style={{ marginTop: 8 }}>Add Item</button>
+            </div>
+            <div style={{ marginTop: 16, textAlign: 'right' }}>
+              <button onClick={handleSave}>Save</button>
+              <button onClick={handleCancel} style={{ marginLeft: 8 }}>Cancel</button>
+            </div>
+          </div>
+        </>
+      )}
 
-        <ConfirmModal
-          visible={confirmDelete.show}
-          title="确认删除模板"
-          content={confirmDelete.tpl ? `确定要删除模板 "${confirmDelete.tpl.name}" 吗？` : ''}
-          onOk={doDeleteTemplate}
-          onCancel={() => setConfirmDelete({ show: false, tpl: null })}
-        />
-      </div>
-    </>
+      <ConfirmModal
+        visible={confirmDelete.show}
+        title="确认删除模板"
+        content={confirmDelete.tpl ? `确定要删除模板 "${confirmDelete.tpl.name}" 吗？` : ''}
+        onOk={doDeleteTemplate}
+        onCancel={() => setConfirmDelete({ show: false, tpl: null })}
+      />
+    </div>
   );
 };
 

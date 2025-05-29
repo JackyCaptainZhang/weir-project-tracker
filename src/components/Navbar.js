@@ -110,7 +110,8 @@ const Navbar = () => {
         </div>
       )}
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px' }}>
-        <div style={{ display: 'flex', gap: 30 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+          <img src="/weir-project-tracker/WeirLogo.png" alt="Weir Logo" style={{ height: '40px', marginRight: '20px' }} />
           {navs.map(nav => (
             <Link
               key={nav.to}
@@ -132,23 +133,25 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          {/* 新增全局信息区域 */}
-          <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', marginRight: 10, minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15 }}>
-            <div>Today: <b>{today}</b></div>
-            <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer' }}>Unfinished Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
-            <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer' }}>Dept Unfinished Checklists: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b></div>
-          </div>
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>Log out</button>
-          <Link to="/profile" style={{ textDecoration: 'none' }}>
-            <div
-              style={{ width: 50, height: 50, borderRadius: '50%', background: '#c8b89a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#222', textAlign: 'center' }}
-              title={user.username || 'User'}
-            >
-              {displayName}
+        {user && user.username && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {/* 新增全局信息区域 */}
+            <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', marginRight: 10, minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15 }}>
+              <div>Today: <b>{today}</b></div>
+              <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer' }}>Unfinished Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
+              <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer' }}>Dept Unfinished Checklists: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b></div>
             </div>
-          </Link>
-        </div>
+            <button onClick={handleLogout} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>Log out</button>
+            <Link to="/profile" style={{ textDecoration: 'none' }}>
+              <div
+                style={{ width: 50, height: 50, borderRadius: '50%', background: '#c8b89a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#222', textAlign: 'center' }}
+                title={user.username || 'User'}
+              >
+                {displayName}
+              </div>
+            </Link>
+          </div>
+        )}
       </nav>
     </>
   );
