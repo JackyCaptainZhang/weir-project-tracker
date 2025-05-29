@@ -31,6 +31,7 @@ const CreateProject = () => {
   const [templateNames, setTemplateNames] = useState({}); // {department: templateName}
   const [fetchingTpl, setFetchingTpl] = useState(false);
   const [departments, setDepartments] = useState([]);
+  const [allTemplates, setAllTemplates] = useState([]);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canCreate = user.department === 'Sales' || user.isAdmin;
@@ -43,21 +44,27 @@ const CreateProject = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setDefaultTemplates(res.data || []);
-      // 拉取所有模板名
+      // 拉取所有模板
       const tplIds = (res.data || []).map(dt => dt.templateId).filter(Boolean);
-      let tplNameMap = {};
       if (tplIds.length > 0) {
         const tplRes = await axios.get('/api/template', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
+        setAllTemplates(tplRes.data);
+        // 拉取所有模板名
+        const tplNameMap = {};
         tplIds.forEach(id => {
           const tpl = tplRes.data.find(t => t._id === id);
           if (tpl) tplNameMap[tpl.department] = tpl.name;
         });
+        setTemplateNames(tplNameMap);
+      } else {
+        setAllTemplates([]);
+        setTemplateNames({});
       }
-      setTemplateNames(tplNameMap);
     } catch {
       setDefaultTemplates([]);
+      setAllTemplates([]);
       setTemplateNames({});
     }
     setFetchingTpl(false);
@@ -101,10 +108,25 @@ const CreateProject = () => {
   };
 
   // 生成弹窗内容
+  console.log('departments:', departments);
+  console.log('defaultTemplates:', defaultTemplates);
+  console.log('allTemplates:', allTemplates);
   const confirmContent = `你即将创建项目【${name}】\n检查单会按照默认模板初始化：\n` +
     departments.map(dep => {
-      const tplName = templateNames[dep._id] || '无默认模板';
-      return `${dep._id}：${dep.name} - ${tplName}`;
+      // 兼容dt.department为对象或字符串
+      const defaultTpl = defaultTemplates.find(dt => {
+        const dtDeptId = dt.department?._id ? String(dt.department._id) : String(dt.departmentId || dt.department);
+        return dtDeptId === String(dep._id);
+      });
+      let tplName = '无默认模板';
+      if (defaultTpl) {
+        const tplObj = allTemplates.find(tpl => String(tpl._id) === String(defaultTpl.templateId?._id || defaultTpl.templateId));
+        tplName = tplObj ? tplObj.name : '有默认模板';
+        console.log(`[confirmContent] 部门: ${dep.name}, dep._id: ${dep._id}, defaultTpl:`, defaultTpl, ', tplObj:', tplObj);
+      } else {
+        console.log(`[confirmContent] 部门: ${dep.name}, dep._id: ${dep._id}, 没有默认模板`);
+      }
+      return `${dep.name} - ${tplName}`;
     }).join('\n');
 
   return (

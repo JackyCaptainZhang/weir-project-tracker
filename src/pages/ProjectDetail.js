@@ -207,7 +207,12 @@ function DepartmentBlock({
                 <span
                   style={{ fontSize: 18, cursor: 'pointer' }}
                   onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id })}
-                >{item.content}</span>
+                >[
+                  {item.createdBy === '683745aeaed0e823da34ca00' || item.createdByName === 'template-system'
+                    ? 'template-system'
+                    : (item.createdByName || item.createdBy?.username || 'Unknown')
+                  }
+                ] {item.content}</span>
               </div>
               {/* 横线仅作分隔，不可点 */}
               <div
@@ -305,7 +310,12 @@ function DepartmentBlock({
                 <span
                   style={{ fontSize: 18, cursor: 'pointer' }}
                   onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id })}
-                >{item.content}</span>
+                >[
+                  {item.createdBy === '683745aeaed0e823da34ca00' || item.createdByName === 'template-system'
+                    ? 'template-system'
+                    : (item.createdByName || item.createdBy?.username || 'Unknown')
+                  }
+                ] {item.content}</span>
               </div>
               {/* 横线仅作分隔，不可点 */}
               <div

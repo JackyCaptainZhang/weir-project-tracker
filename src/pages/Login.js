@@ -26,7 +26,16 @@ const Login = () => {
         });
         isAdmin = adminRes.data.isAdmin || adminRes.data.$isAdmin;
       } catch {}
-      localStorage.setItem('user', JSON.stringify({ username: res.data.username, department: res.data.department, email: res.data.email, isAdmin }));
+      // 新增：兼容多种department结构，确保有departmentId
+      const dept = res.data.department;
+      const departmentId = res.data.departmentId || (typeof dept === 'object' ? dept._id : dept);
+      localStorage.setItem('user', JSON.stringify({
+        username: res.data.username,
+        department: dept,
+        departmentId,
+        email: res.data.email,
+        isAdmin
+      }));
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');

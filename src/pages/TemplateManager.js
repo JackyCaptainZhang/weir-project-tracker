@@ -80,6 +80,7 @@ const TemplateManager = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setDefaultTemplates(res.data || []);
+      console.log('defaultTemplates:', res.data || []);
     } catch (err) {
       setDefaultTemplates([]);
     }
@@ -111,7 +112,16 @@ const TemplateManager = () => {
 
   // New template
   const handleNew = () => {
-    setEditing({ name: '', department: user.department, content: [] });
+    const departmentId = user.department._id || user.department;
+    if (!departmentId) {
+      alert('Department ID is required!');
+      return;
+    }
+    setEditing({ 
+      name: '', 
+      department: departmentId, // 直接使用departmentId
+      content: [] 
+    });
     setIsNew(true);
   };
 
@@ -126,16 +136,34 @@ const TemplateManager = () => {
       alert('All template items must be filled!');
       return;
     }
+
+    // 准备请求数据
+    const requestData = {
+      name: editing.name,
+      content: editing.content
+    };
+
+    // 如果是新建模板，添加departmentId
+    if (isNew) {
+      const departmentId = editing.department;
+      if (!departmentId) {
+        alert('Department ID is required!');
+        return;
+      }
+      requestData.departmentId = departmentId;
+    }
+
+    // 打印请求数据，方便调试
+    console.log('Request data:', requestData);
+
     try {
       if (isNew) {
-        await axios.post('/api/template', editing, {
+        await axios.post('/api/template', requestData, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
       } else {
-        await axios.put(`/api/template/${editing._id}`, {
-          name: editing.name,
-          content: editing.content
-        }, {
+        // 编辑时只发送name和content
+        await axios.put(`/api/template/${editing._id}`, requestData, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
       }
@@ -143,6 +171,7 @@ const TemplateManager = () => {
       fetchTemplates();
       fetchDefaultTemplates();
     } catch (err) {
+      console.error('Save template error:', err);
       alert(err.response?.data?.message || 'Save failed');
     }
   };
@@ -183,11 +212,11 @@ const TemplateManager = () => {
   };
 
   // 设为默认模板
-  const handleSetDefault = async (tpl) => {
+  const handleSetDefault = async (departmentId, templateId) => {
     try {
       await axios.post('/api/default-template', {
-        department: tpl.department,
-        templateId: tpl._id
+        departmentId: departmentId,
+        templateId: templateId
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
@@ -197,16 +226,25 @@ const TemplateManager = () => {
     }
   };
 
-  // 判断某模板是否为其部门的默认模板
-  const isDefaultTemplate = (tpl) => {
-    const found = defaultTemplates.find(dt => dt.department === tpl.department);
-    return found && found.templateId === tpl._id;
+  // 判断某模板是否为其部门的默认模板，兼容对象和字符串，保证比较时都转成字符串，并加日志
+  const isDefaultTemplate = (tpl, deptId) => {
+    const tplIdStr = String(tpl._id);
+    const deptIdStr = String(deptId);
+    const result = defaultTemplates.some(dt => {
+      const dtDept = dt.department?._id ? String(dt.department._id) : dt.department?.toString?.() || String(dt.department);
+      const dtTpl = dt.templateId?._id ? String(dt.templateId._id) : dt.templateId?.toString?.() || String(dt.templateId);
+      const match = dtDept === deptIdStr && dtTpl === tplIdStr;
+      return match;
+    });
+    return result;
   };
 
-  // 按部门分组模板
+  // 按部门分组模板，兼容department为对象或字符串
   const groupedTemplates = templates.reduce((acc, tpl) => {
-    if (!acc[tpl.department]) acc[tpl.department] = [];
-    acc[tpl.department].push(tpl);
+    let depId = tpl.department;
+    if (typeof depId === 'object' && depId !== null) depId = depId._id;
+    if (!acc[depId]) acc[depId] = [];
+    acc[depId].push(tpl);
     return acc;
   }, {});
 
@@ -219,57 +257,69 @@ const TemplateManager = () => {
           <>
             <button onClick={handleNew}>Create New Template</button>
             <div style={{ marginTop: 24 }}>
-              {Object.entries(groupedTemplates).sort().map(([dept, tpls]) => (
-                <div key={dept} style={{ marginBottom: 32 }}>
-                  <div style={{ fontWeight: 700, fontSize: 20, margin: '16px 0 8px', color: '#b48a00' }}>{dept}</div>
-                  <ul style={{ marginLeft: 24 }}>
-                    {tpls.map(tpl => {
-                      const isDefault = isDefaultTemplate(tpl);
-                      return (
-                        <li key={tpl._id} style={{ marginBottom: 8, position: 'relative' }}>
-                          <b
-                            style={{ cursor: 'pointer', textDecoration: 'underline dotted' }}
-                            onMouseEnter={() => setHoveredTemplate(tpl)}
-                            onMouseLeave={() => setHoveredTemplate(null)}
-                          >{tpl.name}</b>
-                          {/* Tooltip for template details */}
-                          {hoveredTemplate && hoveredTemplate._id === tpl._id && (
-                            <div
-                              style={{
-                                position: 'absolute', right: '110%', top: '50%', transform: 'translateY(-50%)', zIndex: 2000,
-                                background: '#fff', border: '1px solid #ccc', borderRadius: 6,
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.12)', padding: 12, minWidth: 260
-                              }}
-                            >
-                              <div style={{ fontWeight: 600, marginBottom: 6 }}>{tpl.name} Details</div>
-                              <ol style={{ margin: 0, paddingLeft: 18 }}>
-                                {tpl.content && tpl.content.length > 0 ? tpl.content.map((item, idx) => (
-                                  <li key={idx} style={{ fontSize: 15, marginBottom: 2 }}>{item}</li>
-                                )) : <li style={{ color: '#888' }}>No items</li>}
-                              </ol>
-                            </div>
-                          )}
-                          <button onClick={() => handleEdit(tpl)} style={{ marginLeft: 8 }}>Edit</button>
-                          {isDefault ? (
-                            <span style={{ marginLeft: 16, color: '#b48a00', fontWeight: 700 }}>Default</span>
-                          ) : (
-                            <>
+              {Object.entries(groupedTemplates).sort().map(([deptId, tpls]) => {
+                let depObj = departments.find(dep => dep._id === deptId);
+                if (!depObj && typeof tpls[0].department === 'object' && tpls[0].department !== null) {
+                  depObj = tpls[0].department;
+                }
+                return (
+                  <div key={deptId} style={{ marginBottom: 32 }}>
+                    <div style={{ fontWeight: 700, fontSize: 20, margin: '16px 0 8px', color: '#b48a00' }}>
+                      {depObj ? depObj.name : deptId}
+                    </div>
+                    <ul style={{ marginLeft: 24 }}>
+                      {tpls.map(tpl => {
+                        const isDefault = isDefaultTemplate(tpl, deptId);
+                        return (
+                          <li key={tpl._id} style={{ marginBottom: 8, position: 'relative' }}>
+                            <b
+                              style={{ cursor: 'pointer', textDecoration: 'underline dotted' }}
+                              onMouseEnter={() => setHoveredTemplate(tpl)}
+                              onMouseLeave={() => setHoveredTemplate(null)}
+                            >{tpl.name}</b>
+                            {/* Tooltip for template details */}
+                            {hoveredTemplate && hoveredTemplate._id === tpl._id && (
+                              <div
+                                style={{
+                                  position: 'absolute', right: '110%', top: '50%', transform: 'translateY(-50%)', zIndex: 2000,
+                                  background: '#fff', border: '1px solid #ccc', borderRadius: 6,
+                                  boxShadow: '0 2px 12px rgba(0,0,0,0.12)', padding: 12, minWidth: 260
+                                }}
+                              >
+                                <div style={{ fontWeight: 600, marginBottom: 6 }}>{tpl.name} Details</div>
+                                <ol style={{ margin: 0, paddingLeft: 18 }}>
+                                  {tpl.content && tpl.content.length > 0 ? tpl.content.map((item, idx) => (
+                                    <li key={idx} style={{ fontSize: 15, marginBottom: 2 }}>{item}</li>
+                                  )) : <li style={{ color: '#888' }}>No items</li>}
+                                </ol>
+                              </div>
+                            )}
+                            <button onClick={() => handleEdit(tpl)} style={{ marginLeft: 8 }}>Edit</button>
+                            {!isDefault && (
                               <button
                                 onClick={() => handleDeleteTemplate(tpl)}
                                 style={{ marginLeft: 8, color: 'red' }}
                               >Delete</button>
+                            )}
+                            {!isDefault && (
                               <button
-                                onClick={() => handleSetDefault(tpl)}
+                                onClick={() => {
+                                  console.log('Set default payload:', { department: deptId, templateId: tpl._id });
+                                  handleSetDefault(deptId, tpl._id);
+                                }}
                                 style={{ marginLeft: 8 }}
                               >Set as Default</button>
-                            </>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
+                            )}
+                            {isDefault && (
+                              <span style={{ marginLeft: 16, color: '#b48a00', fontWeight: 700, fontSize: 15, verticalAlign: 'middle' }}>默认</span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
@@ -293,7 +343,13 @@ const TemplateManager = () => {
               <div style={{ marginBottom: 12 }}>
                 {user.isAdmin ? (
                   <>
-                    Department: <select value={editing.department} onChange={e => setEditing({ ...editing, department: e.target.value })}>
+                    Department: <select 
+                      value={editing.department._id || editing.department} 
+                      onChange={e => setEditing({ 
+                        ...editing, 
+                        department: e.target.value 
+                      })}
+                    >
                       {departments.map(dep => (
                         <option key={dep._id} value={dep._id}>{dep.name}</option>
                       ))}
@@ -301,7 +357,11 @@ const TemplateManager = () => {
                   </>
                 ) : (
                   <>
-                    Department: <span style={{ fontWeight: 600 }}>{user.department}</span>
+                    Department: <span style={{ fontWeight: 600 }}>
+                      {departments.find(d => d._id === (editing.department._id || editing.department))?.name || 
+                       user.department.name || 
+                       user.department}
+                    </span>
                   </>
                 )}
               </div>
