@@ -5,7 +5,7 @@ const ProjectCard = ({ name, status, days, createdAt, progress, isFinished, onCl
     <div
       style={{
         width: 500,
-        background: '#c8b89a',
+        background: isFinished ? '#b6eab7' : '#c8b89a',
         margin: '30px 0',
         padding: 20,
         border: '1px solid #333',
