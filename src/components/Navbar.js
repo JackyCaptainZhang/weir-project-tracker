@@ -132,6 +132,7 @@ const Navbar = () => {
               Create new Projects
             </Link>
           )}
+          <span style={{ fontSize: 28, fontWeight: 700, color: '#00325c', marginLeft: 36, letterSpacing: 1 }}>Project Tracking System</span>
         </div>
         {user && user.username && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>

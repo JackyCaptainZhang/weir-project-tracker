@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import axiosInstance from '../api/axiosInstance';
 
 const tabs = [
   { key: 'users', label: 'User Management' },
@@ -58,11 +60,35 @@ const Admin = () => {
       .catch(err => setMessage(err.response?.data?.message || 'Failed'));
   };
   // 新增部门
-  const handleAddDept = () => {
+  const handleAddDept = async () => {
     if (!newDept) return;
-    axios.post('/api/department/add', { name: newDept })
-      .then(() => { setMessage('Added department!'); fetchDepartments(); setNewDept(''); })
-      .catch(err => setMessage(err.response?.data?.message || 'Failed'));
+    try {
+      // 1. 新增部门（不带order）
+      await axios.post('/api/department/add', { name: newDept });
+      setMessage('Added department!');
+      setNewDept('');
+      // 2. 获取最新部门列表
+      const res = await axios.get('/api/department/list');
+      const allDepts = res.data;
+      // 3. 找到最大order
+      const maxOrder = allDepts.length === 0
+        ? 0
+        : Math.max(...allDepts.map(dep => typeof dep.order === 'number' ? dep.order : 0));
+      // 4. 找到新加的部门（假设name唯一）
+      const newDeptObj = allDepts.find(dep => dep.name === newDept);
+      if (!newDeptObj) return;
+      // 5. 组装order数组
+      const updated = allDepts.map(dep => ({
+        _id: dep._id,
+        order: dep._id === newDeptObj._id ? maxOrder + 1 : dep.order
+      }));
+      // 6. 调用update-order接口
+      await axiosInstance.put('/api/department/update-order', { departments: updated });
+      // 7. 刷新
+      fetchDepartments();
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Failed');
+    }
   };
   // 编辑部门
   const handleEditDept = (id) => {
@@ -89,6 +115,35 @@ const Admin = () => {
   const filteredUsers = searchUser
     ? users.filter(u => u.username.toLowerCase().includes(searchUser.toLowerCase()))
     : users;
+
+  // 拖拽排序处理（fetch+token+新API风格）
+  const [originalDepartments, setOriginalDepartments] = useState([]);
+  useEffect(() => {
+    setOriginalDepartments(departments);
+  }, [departments]);
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const newDepartments = Array.from(departments);
+    const [reorderedItem] = newDepartments.splice(result.source.index, 1);
+    newDepartments.splice(result.destination.index, 0, reorderedItem);
+    // 组装order数据
+    const updatedDepartments = newDepartments.map((dept, index) => ({
+      _id: dept._id,
+      order: index
+    }));
+    setDepartments(newDepartments);
+    try {
+      console.log('请求体:', { departments: updatedDepartments });
+      const response = await axiosInstance.put('/api/department/update-order', { departments: updatedDepartments });
+      console.log('响应:', response.data);
+      setDepartments(response.data.departments || newDepartments);
+    } catch (error) {
+      console.error('更新顺序失败:', error, error?.response?.data);
+      setDepartments(originalDepartments);
+      alert('更新顺序失败，请重试');
+    }
+  };
 
   return (
     <div>
@@ -133,26 +188,72 @@ const Admin = () => {
         {activeTab === 'departments' && (
           <div>
             <h3>Department Management</h3>
-            <div style={{ marginBottom: 10 }}>
-              <input placeholder="New department name" value={newDept} onChange={e => setNewDept(e.target.value)} />
-              <button onClick={handleAddDept}>Add</button>
+            <div style={{ marginBottom: 18, display: 'flex', gap: 10, alignItems: 'center' }}>
+              <input 
+                placeholder="New department name" 
+                value={newDept} 
+                onChange={e => setNewDept(e.target.value)} 
+                style={{ height: 36, fontSize: 16, borderRadius: 6, border: '1.5px solid #b48a00', padding: '0 12px', outline: 'none' }}
+              />
+              <button 
+                onClick={handleAddDept} 
+                style={{ height: 36, background: '#b48a00', color: '#fff', border: 'none', borderRadius: 6, fontSize: 16, fontWeight: 600, padding: '0 22px', cursor: 'pointer' }}
+              >Add</button>
             </div>
-            <table border="1" cellPadding="8" style={{ minWidth: 400, background: '#fff' }}>
-              <thead><tr><th>Name</th><th>Actions</th></tr></thead>
-              <tbody>
-                {departments.map(dep => (
-                  <tr key={dep._id}>
-                    <td>
-                      <input value={editDept[dep._id] !== undefined ? editDept[dep._id] : dep.name} onChange={e => setEditDept({ ...editDept, [dep._id]: e.target.value })} />
-                    </td>
-                    <td>
-                      <button onClick={() => handleEditDept(dep._id)}>Edit</button>
-                      <button onClick={() => handleDeleteDept(dep._id)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="departments-droppable" direction="vertical">
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
+                  >
+                    {departments.map((dep, idx) => (
+                      <Draggable key={dep._id} draggableId={dep._id} index={idx}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              ...provided.draggableProps.style,
+                              opacity: snapshot.isDragging ? 0.7 : 1,
+                              background: '#fffbe6',
+                              border: '1.5px solid #b48a00',
+                              borderRadius: 12,
+                              boxShadow: '0 2px 12px rgba(180,138,0,0.07)',
+                              padding: '22px 32px',
+                              minWidth: 320,
+                              maxWidth: 360,
+                              marginBottom: 10,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              gap: 12,
+                              cursor: 'grab',
+                            }}
+                          >
+                            <div style={{ fontWeight: 700, fontSize: 18, color: '#b48a00', marginBottom: 8 }}>Department</div>
+                            <input 
+                              value={editDept[dep._id] !== undefined ? editDept[dep._id] : dep.name} 
+                              onChange={e => setEditDept({ ...editDept, [dep._id]: e.target.value })} 
+                              style={{ fontSize: 17, borderRadius: 6, border: '1.5px solid #bbb', padding: '6px 12px', width: '100%', marginBottom: 8 }}
+                            />
+                            <div style={{ display: 'flex', gap: 16 }}>
+                              <button 
+                                onClick={() => handleEditDept(dep._id)} 
+                                style={{ background: '#b48a00', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, padding: '6px 22px', cursor: 'pointer' }}
+                              >Edit</button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </div>
         )}
         {activeTab === 'admins' && (

@@ -30,6 +30,22 @@ function App() {
         <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
         <Route path="/template" element={<RequireAuth><TemplateManager /></RequireAuth>} />
       </Routes>
+      <footer style={{
+        width: '100%',
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#888',
+        letterSpacing: 1,
+        position: 'fixed',
+        left: 0,
+        bottom: 0,
+        background: 'white',
+        zIndex: 999,
+        padding: '10px 0',
+        boxShadow: '0 -2px 8px rgba(0,0,0,0.03)'
+      }}>
+        V1.0 @Junchuan Zhang 2025
+      </footer>
     </>
   );
 }
