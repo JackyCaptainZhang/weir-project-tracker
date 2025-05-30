@@ -4,19 +4,23 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!username || !password) {
-      setError('Please enter username and password');
+    if (!account || !password) {
+      setError('Please enter username/email and password');
       return;
     }
+    // 判断是邮箱还是用户名
+    const payload = account.includes('@')
+      ? { email: account, password }
+      : { username: account, password };
     try {
-      const res = await axios.post('/api/auth/login', { username, password });
+      const res = await axios.post('/api/auth/login', payload);
       localStorage.setItem('token', res.data.token);
       // 登录后只查一次isAdmin
       let isAdmin = false;
@@ -47,8 +51,8 @@ const Login = () => {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100 }}>
       <h1>Welcome To Weir Project Tracker System</h1>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', width: 400 }}>
-        <label>User name/Email</label>
-        <input value={username} onChange={e => setUsername(e.target.value)} style={{ marginBottom: 20, height: 32 }} />
+        <label>User name or Email</label>
+        <input value={account} onChange={e => setAccount(e.target.value)} style={{ marginBottom: 20, height: 32 }} />
         <label>Password</label>
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ marginBottom: 20, height: 32 }} />
         {error && <div style={{ color: 'red', marginBottom: 10 }}>{error}</div>}
