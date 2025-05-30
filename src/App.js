@@ -12,6 +12,7 @@ import Admin from './pages/Admin';
 import TemplateManager from './pages/TemplateManager';
 import RequireAuth from './components/RequireAuth';
 import Navbar from './components/Navbar';
+import AutoLogout from './components/AutoLogout';
 import './App.css';
 
 function App() {
@@ -21,14 +22,14 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
-        <Route path="/project/:id" element={<RequireAuth><ProjectDetail /></RequireAuth>} />
-        <Route path="/finished" element={<RequireAuth><FinishedProjects /></RequireAuth>} />
-        <Route path="/all" element={<RequireAuth><AllProjects /></RequireAuth>} />
-        <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-        <Route path="/create" element={<RequireAuth><CreateProject /></RequireAuth>} />
-        <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
-        <Route path="/template" element={<RequireAuth><TemplateManager /></RequireAuth>} />
+        <Route path="/" element={<RequireAuth><Home /><AutoLogout /></RequireAuth>} />
+        <Route path="/project/:id" element={<RequireAuth><ProjectDetail /><AutoLogout /></RequireAuth>} />
+        <Route path="/finished" element={<RequireAuth><FinishedProjects /><AutoLogout /></RequireAuth>} />
+        <Route path="/all" element={<RequireAuth><AllProjects /><AutoLogout /></RequireAuth>} />
+        <Route path="/profile" element={<RequireAuth><Profile /><AutoLogout /></RequireAuth>} />
+        <Route path="/create" element={<RequireAuth><CreateProject /><AutoLogout /></RequireAuth>} />
+        <Route path="/admin" element={<RequireAuth><Admin /><AutoLogout /></RequireAuth>} />
+        <Route path="/template" element={<RequireAuth><TemplateManager /><AutoLogout /></RequireAuth>} />
       </Routes>
       <footer style={{
         width: '100%',
