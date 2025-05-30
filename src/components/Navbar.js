@@ -166,7 +166,13 @@ const Navbar = () => {
             <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15, position: 'fixed', left: 24, top: 24, zIndex: 1000, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
               <div>Today: <b>{today}</b></div>
               <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>Total UNFINISHED Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
-              <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>Your Dept BLOCKED Project: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b></div>
+              <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>
+                Your Dept
+                <span style={{ fontSize: 13, marginLeft: 4, marginRight: 4, fontWeight: 'bold', color: '#222' }}>
+                  ({user.department?.name || (typeof user.department === 'string' ? user.department : '') || user.departmentId || 'No Dept'})
+                </span>
+                BLOCKED Project: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b>
+              </div>
             </div>
           )}
         </div>

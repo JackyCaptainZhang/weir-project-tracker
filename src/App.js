@@ -44,7 +44,7 @@ function App() {
         padding: '10px 0',
         boxShadow: '0 -2px 8px rgba(0,0,0,0.03)'
       }}>
-        V1.0 @Junchuan Zhang 2025
+        V1.1 @Junchuan Zhang 2025
       </footer>
     </>
   );

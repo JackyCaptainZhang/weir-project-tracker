@@ -292,7 +292,7 @@ const Admin = () => {
                     <tr key={a.username}>
                       <td>{a.username}</td>
                       <td>
-                        {a.username === 'jzhang78-admin'
+                        {['jzhang78-admin', 'Winc'].includes(a.username)
                           ? <span style={{ color: '#888' }}>Protected</span>
                           : <button onClick={() => handleRemoveAdmin(a.username)}>Remove Admin</button>
                         }

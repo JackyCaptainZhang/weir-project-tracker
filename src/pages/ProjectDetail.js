@@ -581,7 +581,7 @@ const ProjectDetail = () => {
             })}
             {/* Finish */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: nodeSize+24 }}>
-              <div style={{ background: '#009cff', color: '#fff', padding: '14px 28px', borderRadius: 12, marginBottom: 18, fontSize: 20, minWidth: 100, textAlign: 'center' }}>Finish</div>
+              <div style={{ background: '#009cff', color: '#fff', padding: '14px 28px', borderRadius: 12, marginBottom: 18, fontSize: 20, minWidth: 100, textAlign: 'center' }}>Customor</div>
             </div>
           </div>
         </div>

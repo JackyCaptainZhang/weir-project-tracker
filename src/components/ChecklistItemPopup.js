@@ -69,13 +69,15 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
     <div style={{ background: '#fff8a6', border: '1px solid #ccc', borderRadius: 8, padding: 20, minWidth: 320, maxWidth: 400, position: 'relative' }}>
       <div style={{ fontWeight: 600, marginBottom: 10 }}>{title || 'Item detail'}</div>
       {/* 按钮栏在标题下方 */}
-      {(isAdmin || isOwnDept) && !showCommentInput && item?.status !== 'complete' && (
+      {!showCommentInput && item?.status !== 'complete' && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginBottom: 10 }}>
-          <button
-            style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: assignLoading ? 'not-allowed' : 'pointer', opacity: assignLoading ? 0.7 : 1 }}
-            disabled={assignLoading}
-            onClick={() => setShowAssignConfirm(true)}
-          >分配该任务给自己</button>
+          {(isAdmin || isOwnDept) && (
+            <button
+              style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: assignLoading ? 'not-allowed' : 'pointer', opacity: assignLoading ? 0.7 : 1 }}
+              disabled={assignLoading}
+              onClick={() => setShowAssignConfirm(true)}
+            >分配该任务给自己</button>
+          )}
           <button
             style={{ background: '#00b800', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
             onClick={() => setShowCommentInput(true)}
@@ -176,7 +178,7 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
         {item.comments && item.comments.length > 0 ? (
           <ul style={{ paddingLeft: 18, margin: 0 }}>
             {item.comments.map((c, i) => (
-              <li key={c._id || i} style={{ fontSize: 14, marginBottom: 2 }}>{c.content} <span style={{ color: '#888', fontSize: 12 }}>by {c.userName || 'Unknown'} on {c.createdAt ? new Date(c.createdAt).toLocaleString() : '----'}</span></li>
+              <li key={c._id || i} style={{ fontSize: 14, marginBottom: 2 }}>{c.content} <span style={{ color: '#888', fontSize: 12 }}>by {c.userName || 'Unknown'}{c.departmentName ? ` (${c.departmentName})` : ''} on {c.createdAt ? new Date(c.createdAt).toLocaleString() : '----'}</span></li>
             ))}
           </ul>
         ) : <div style={{ color: '#aaa', fontSize: 14 }}>No messages</div>}
