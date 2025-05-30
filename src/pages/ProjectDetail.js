@@ -50,9 +50,9 @@ function ConfirmModal({ visible, title, content, onOk, onCancel }) {
 }
 
 function DepartmentBlock({
-  dep, idx, nodeSize, fontSize, arrowLength, ballSize, ballOffset, checklistWidth, checklist, onCheck, onComment, canOperate, hovered, setHovered, setPopup, popup, isCurrent, detailPopupRef, userDepartmentId, projectId, refreshChecklists, isOrange, showBall, onlyCircleAndArrow, onlyCard, setChecklists, departments, isAdmin
+  dep, idx, nodeSize, arrowLength, ballSize, ballOffset, checklistWidth, checklist, hovered, setPopup, userDepartmentId, refreshChecklists, isOrange, showBall, departments, isAdmin
 }) {
-  const [popupDirection, setPopupDirection] = useState('right');
+  const [setPopupDirection] = useState('right');
   const itemRefs = useRef([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedToDelete, setSelectedToDelete] = useState([]);
@@ -119,109 +119,6 @@ function DepartmentBlock({
     (checklist.department && String(checklist.department._id) === String(userDepartmentId))
   );
 
-  if (onlyCircleAndArrow) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', height: nodeSize }}>
-        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: nodeColor, border: '2.5px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, color: nodeTextColor, zIndex: 2, overflow: 'hidden', textAlign: 'center', lineHeight: 1.1, padding: 6, maxWidth: '90%', overflowWrap: 'break-word' }}>{dep.name}</div>
-        {idx < departments.length - 1 && (
-          <div style={{ position: 'relative', width: arrowLength, height: nodeSize, display: 'flex', alignItems: 'center' }}>
-            <svg width={arrowLength} height={ballSize+8} style={{ display: 'block' }}>
-              <line x1="0" y1={ballSize/2+4} x2={arrowLength-18} y2={ballSize/2+4} stroke="#00c800" strokeWidth="5" />
-              <polygon points={`${arrowLength-18},${ballSize/2-2} ${arrowLength},${ballSize/2+4} ${arrowLength-18},${ballSize/2+10}`} fill="#00c800" />
-            </svg>
-            {showBall && (
-              <div style={{ position: 'absolute', left: ballOffset, top: (nodeSize-ballSize)/2, zIndex: 3 }}>
-                <div style={{ width: ballSize, height: ballSize, borderRadius: '50%', background: '#00c800', border: '2.5px solid #fff', boxShadow: '0 0 8px #00c800' }}></div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-  if (onlyCard) {
-    return (
-      <div style={{ background: '#fff8c6', padding: 20, minWidth: checklistWidth, maxWidth: checklistWidth, border: '1.5px solid #ccc', borderRadius: 12, position: 'relative', minHeight: 320 }}>
-        <div style={{ marginBottom: 8, fontSize: 18, fontWeight: 600, textAlign: 'center' }}>
-          <span style={{ color: '#444' }}>Progress: </span>
-          <span style={{ color: '#00c800', fontSize: 22 }}>{checklist.progress || 0}%</span>
-        </div>
-        {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}
-        {(isAdmin || isOwnDept) && checklist.progress !== 100 && (
-          <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-            <button
-              style={{
-                background: loadingAction ? '#aaa' : '#00c800', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 18px', fontSize: 16, cursor: loadingAction ? 'not-allowed' : 'pointer', fontWeight: 600
-              }}
-              disabled={loadingAction}
-              onClick={() => {
-                if (loadingAction) return;
-                setShowInputModal(true);
-              }}
-            >+ 添加检查项</button>
-            <button
-              style={{
-                background: loadingAction ? '#aaa' : '#ff4444', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 18px', fontSize: 16, cursor: loadingAction ? 'not-allowed' : 'pointer', fontWeight: 600
-              }}
-              disabled={loadingAction}
-              onClick={() => {
-                if (loadingAction) return;
-                setShowDeleteModal(true);
-                setSelectedToDelete([]);
-              }}
-            >删除检查项</button>
-            <button
-              style={{
-                background: loadingAction ? '#aaa' : '#007bff', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 18px', fontSize: 16, cursor: loadingAction ? 'not-allowed' : 'pointer', fontWeight: 600
-              }}
-              disabled={loadingAction}
-              onClick={() => {
-                if (loadingAction) return;
-                fetchTemplates();
-                setShowTemplateModal(true);
-              }}
-            >从模板加载</button>
-          </div>
-        )}
-        {checklist && checklist.items && checklist.items.length > 0 ? checklist.items.map((item, itemIdx) => {
-          // 强制status默认值
-          const status = item.status || 'incomplete';
-          return (
-            <div key={item._id || itemIdx} style={{ marginBottom: 18, position: 'relative' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="checkbox"
-                  readOnly
-                  style={{ marginRight: 10, cursor: (isAdmin || isOwnDept) ? 'pointer' : 'not-allowed', width: 18, height: 18 }}
-                  checked={status === 'complete'}
-                  disabled={!(isAdmin || isOwnDept) || status === 'complete'}
-                  onClick={async () => {
-                    if ((isAdmin || isOwnDept) && status !== 'complete') {
-                      setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id, isOwnDept });
-                    }
-                  }}
-                />
-                <span
-                  style={{ fontSize: 18, cursor: 'pointer' }}
-                  onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id, isOwnDept })}
-                >[
-                  {item.createdBy === '683745aeaed0e823da34ca00' || item.createdByName === 'template-system'
-                    ? 'template-system'
-                    : (item.createdByName || item.createdBy?.username || 'Unknown')
-                  }
-                ] {item.content}</span>
-              </div>
-              {/* 横线仅作分隔，不可点 */}
-              <div
-                style={{ height: 2, background: '#e0e0a0', margin: '8px 0', borderRadius: 1 }}
-              />
-            </div>
-          );
-        }) : <div style={{ color: '#aaa', textAlign: 'center' }}>No items</div>}
-      </div>
-    );
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: checklistWidth, maxWidth: checklistWidth }}>
       {/* 顶部：固定高度，圆圈+箭头垂直居中 */}
@@ -249,41 +146,44 @@ function DepartmentBlock({
           <span style={{ color: '#444' }}>Progress: </span>
           <span style={{ color: '#00c800', fontSize: 22 }}>{checklist.progress || 0}%</span>
         </div>
-        {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}
+        {/* 仅本部门显示添加item和删除item按钮（进度条下方） */}    
         {(isAdmin || isOwnDept) && checklist.progress !== 100 && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
             <button
-              style={{
-                background: loadingAction ? '#aaa' : '#00c800', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 18px', fontSize: 16, cursor: loadingAction ? 'not-allowed' : 'pointer', fontWeight: 600
-              }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: loadingAction ? 'not-allowed' : 'pointer', opacity: loadingAction ? 0.5 : 1, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               disabled={loadingAction}
               onClick={() => {
                 if (loadingAction) return;
                 setShowInputModal(true);
               }}
-            >+ 添加检查项</button>
+              title="添加检查项"
+            >
+              <img src="/weir-project-tracker/icons/icons-add.png" style={{ width: 28, height: 28 }} />
+            </button>
             <button
-              style={{
-                background: loadingAction ? '#aaa' : '#ff4444', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 18px', fontSize: 16, cursor: loadingAction ? 'not-allowed' : 'pointer', fontWeight: 600
-              }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: loadingAction ? 'not-allowed' : 'pointer', opacity: loadingAction ? 0.5 : 1, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               disabled={loadingAction}
               onClick={() => {
                 if (loadingAction) return;
                 setShowDeleteModal(true);
                 setSelectedToDelete([]);
               }}
-            >删除检查项</button>
+              title="删除检查项"
+            >
+              <img src="/weir-project-tracker/icons/icons-bin.png" style={{ width: 28, height: 28 }} />
+            </button>
             <button
-              style={{
-                background: loadingAction ? '#aaa' : '#007bff', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 18px', fontSize: 16, cursor: loadingAction ? 'not-allowed' : 'pointer', fontWeight: 600
-              }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: loadingAction ? 'not-allowed' : 'pointer', opacity: loadingAction ? 0.5 : 1, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               disabled={loadingAction}
               onClick={() => {
                 if (loadingAction) return;
                 fetchTemplates();
                 setShowTemplateModal(true);
               }}
-            >从模板加载</button>
+              title="从模板加载"
+            >
+              <img src="/weir-project-tracker/icons/icons-template.png" style={{ width: 28, height: 28 }} />
+            </button>
           </div>
         )}
         {checklist && checklist.items && checklist.items.length > 0 ? checklist.items.map((item, itemIdx) => {
@@ -292,18 +192,36 @@ function DepartmentBlock({
           return (
             <div key={item._id || itemIdx} style={{ marginBottom: 18, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="checkbox"
-                  readOnly
-                  style={{ marginRight: 10, cursor: (isAdmin || isOwnDept) ? 'pointer' : 'not-allowed', width: 18, height: 18 }}
-                  checked={status === 'complete'}
-                  disabled={!(isAdmin || isOwnDept) || status === 'complete'}
-                  onClick={async () => {
-                    if ((isAdmin || isOwnDept) && status !== 'complete') {
-                      setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id, isOwnDept });
-                    }
-                  }}
-                />
+                <label style={{ marginRight: 10, display: 'inline-flex', alignItems: 'center', cursor: (isAdmin || isOwnDept) ? 'pointer' : 'not-allowed' }}>
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={status === 'complete'}
+                    disabled={!(isAdmin || isOwnDept) || status === 'complete'}
+                    onClick={async () => {
+                      if ((isAdmin || isOwnDept) && status !== 'complete') {
+                        setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id, isOwnDept });
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                  <span style={{
+                    width: 18,
+                    height: 18,
+                    display: 'inline-block',
+                    border: '2px solid #bbb',
+                    borderRadius: 4,
+                    background: status === 'complete' ? '#eaffea' : '#fff',
+                    position: 'relative',
+                    transition: 'border 0.2s',
+                  }}>
+                    {status === 'complete' && (
+                      <svg width="18" height="18" viewBox="0 0 18 18" style={{ position: 'absolute', left: 0, top: 0 }}>
+                        <polyline points="4,10 8,14 14,5" style={{ fill: 'none', stroke: '#00c800', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
+                      </svg>
+                    )}
+                  </span>
+                </label>
                 <span
                   style={{ fontSize: 18, cursor: 'pointer' }}
                   onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id, isOwnDept })}

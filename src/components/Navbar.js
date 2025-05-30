@@ -109,50 +109,67 @@ const Navbar = () => {
           </div>
         </div>
       )}
-      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
-          <img src="/weir-project-tracker/WeirLogo.png" alt="Weir Logo" style={{ height: '40px', marginRight: '20px' }} />
-          {navs.map(nav => (
-            <Link
-              key={nav.to}
-              to={nav.to}
-              style={{
-                textDecoration: 'none',
-                color: location.pathname.match(nav.match) ? '#b48a00' : 'black',
-                fontWeight: location.pathname.match(nav.match) ? 700 : 400,
-                borderBottom: location.pathname.match(nav.match) ? '2px solid #b48a00' : 'none',
-                paddingBottom: 2
-              }}
-            >
-              {nav.label}
-            </Link>
-          ))}
-          {canCreateProject && (
-            <Link to="/create" style={{ textDecoration: 'none', color: location.pathname === '/create' ? '#b48a00' : 'black', fontWeight: location.pathname === '/create' ? 700 : 400, borderBottom: location.pathname === '/create' ? '2px solid #b48a00' : 'none', paddingBottom: 2 }}>
-              Create new Projects
-            </Link>
-          )}
-          <span style={{ fontSize: 28, fontWeight: 700, color: '#00325c', marginLeft: 36, letterSpacing: 1 }}>Project Tracking System</span>
+      <nav style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 0 0 0', width: '100%' }}>
+        {/* 上方logo+标题整体 */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 18 }}>
+          <img src="/weir-project-tracker/WeirLogo.png" alt="Weir Logo" style={{ height: '28px', marginBottom: '5px' }} />
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#00325c', letterSpacing: 1 }}>Project Tracking System</span>
         </div>
-        {user && user.username && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {/* 新增全局信息区域 */}
-            <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', marginRight: 10, minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15 }}>
-              <div>Today: <b>{today}</b></div>
-              <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer' }}>Unfinished Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
-              <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer' }}>Dept Unfinished Checklists: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b></div>
+        {/* 下方菜单和用户信息 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 1600, padding: '0 40px' }}>
+          {/* 居中菜单单独一行 */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+              {navs.map(nav => (
+                <Link
+                  key={nav.to}
+                  to={nav.to}
+                  style={{
+                    textDecoration: 'none',
+                    color: location.pathname.match(nav.match) ? '#b48a00' : 'black',
+                    fontWeight: location.pathname.match(nav.match) ? 700 : 400,
+                    borderBottom: location.pathname.match(nav.match) ? '2px solid #b48a00' : 'none',
+                    paddingBottom: 2
+                  }}
+                >
+                  {nav.label}
+                </Link>
+              ))}
+              {canCreateProject && (
+                <Link to="/create" style={{ textDecoration: 'none', color: location.pathname === '/create' ? '#b48a00' : 'black', fontWeight: location.pathname === '/create' ? 700 : 400, borderBottom: location.pathname === '/create' ? '2px solid #b48a00' : 'none', paddingBottom: 2 }}>
+                  Create new Projects
+                </Link>
+              )}
             </div>
-            <button onClick={handleLogout} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>Log out</button>
-            <Link to="/profile" style={{ textDecoration: 'none' }}>
-              <div
-                style={{ width: 50, height: 50, borderRadius: '50%', background: '#c8b89a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#222', textAlign: 'center' }}
-                title={user.username || 'User'}
-              >
-                {displayName}
-              </div>
-            </Link>
           </div>
-        )}
+          {/* 用户信息区固定在右上角 */}
+          {user && user.username && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, position: 'fixed', right: 40, top: 24, zIndex: 1000 }}>
+              <button onClick={handleLogout} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>Log out</button>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Link to="/profile" style={{ textDecoration: 'none' }}>
+                  <div
+                    style={{ width: 50, height: 50, borderRadius: '50%', background: '#c8b89a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#222', textAlign: 'center' }}
+                    title={user.username || 'User'}
+                  >
+                    {displayName}
+                  </div>
+                </Link>
+                <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>
+                  {user.department?.name || (typeof user.department === 'string' ? user.department : '') || user.departmentId || 'No Dept'}
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 统计信息框固定在左上角 */}
+          {user && user.username && (
+            <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15, position: 'fixed', left: 24, top: 24, zIndex: 1000, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div>Today: <b>{today}</b></div>
+              <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>Total UNFINISHED Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
+              <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>Your Dept BLOCKED Project: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b></div>
+            </div>
+          )}
+        </div>
       </nav>
     </>
   );

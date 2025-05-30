@@ -67,19 +67,20 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
   if (!item) return null;
   return (
     <div style={{ background: '#fff8a6', border: '1px solid #ccc', borderRadius: 8, padding: 20, minWidth: 320, maxWidth: 400, position: 'relative' }}>
-      {/* 右上角添加评论按钮，仅本部门或管理员可见 */}
+      <div style={{ fontWeight: 600, marginBottom: 10 }}>{title || 'Item detail'}</div>
+      {/* 按钮栏在标题下方 */}
       {(isAdmin || isOwnDept) && !showCommentInput && item?.status !== 'complete' && (
-        <>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginBottom: 10 }}>
           <button
-            style={{ position: 'absolute', top: 16, right: 18, background: '#00b800', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
-            onClick={() => setShowCommentInput(true)}
-          >添加评论</button>
-          <button
-            style={{ position: 'absolute', top: 16, right: 120, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: assignLoading ? 'not-allowed' : 'pointer', marginRight: 8, opacity: assignLoading ? 0.7 : 1 }}
+            style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: assignLoading ? 'not-allowed' : 'pointer', opacity: assignLoading ? 0.7 : 1 }}
             disabled={assignLoading}
             onClick={() => setShowAssignConfirm(true)}
           >分配该任务给自己</button>
-        </>
+          <button
+            style={{ background: '#00b800', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 14px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+            onClick={() => setShowCommentInput(true)}
+          >添加评论</button>
+        </div>
       )}
       {/* 评论输入框 */}
       {showCommentInput && (
@@ -159,7 +160,6 @@ const ChecklistItemPopup = ({ mode = 'detail', onClose, title, itemId, itemDepar
           </div>
         </div>
       )}
-      <div style={{ fontWeight: 600, marginBottom: 10 }}>{title || 'Item detail'}</div>
       <div style={{ fontSize: 15, marginBottom: 5 }}>
         Created by {item.createdByName || item.createdBy?.username || 'Unknown'} on {item.createdAt ? new Date(item.createdAt).toLocaleString() : '----'}
       </div>
