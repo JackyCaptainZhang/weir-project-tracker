@@ -200,7 +200,7 @@ function DepartmentBlock({
                     disabled={!(isAdmin || isOwnDept) || status === 'complete'}
                     onClick={async () => {
                       if ((isAdmin || isOwnDept) && status !== 'complete') {
-                        setPopup({ mode: 'complete', depIdx: idx, itemIdx, itemId: item._id, isOwnDept });
+                        setPopup({ mode: 'complete', checklistId: checklist._id, itemId: item._id, isOwnDept, departmentId: dep._id });
                       }
                     }}
                     style={{ display: 'none' }}
@@ -224,7 +224,7 @@ function DepartmentBlock({
                 </label>
                 <span
                   style={{ fontSize: 18, cursor: 'pointer' }}
-                  onClick={() => setPopup({ mode: 'detail', depIdx: idx, itemIdx, itemId: item._id, isOwnDept })}
+                  onClick={() => setPopup({ mode: 'detail', checklistId: checklist._id, itemId: item._id, isOwnDept, departmentId: dep._id })}
                 >[
                   {item.createdBy === '683745aeaed0e823da34ca00' || item.createdByName === 'template-system'
                     ? 'template-system'
@@ -410,7 +410,7 @@ function DepartmentBlock({
 
 const ProjectDetail = () => {
   const { id: projectId } = useParams();
-  const [popup, setPopup] = useState(null); // {mode, depIdx, itemIdx}
+  const [popup, setPopup] = useState(null); // {mode, checklistId, itemId, departmentId}
   const [hovered, setHovered] = useState(null); // {depIdx, itemIdx}
   const [project, setProject] = useState(null);
   const [checklists, setChecklists] = useState([]); // 带items的checklist
@@ -606,8 +606,8 @@ const ProjectDetail = () => {
           >
             {popup && popup.mode === 'detail' && (
               (() => {
-                const currentChecklist = checklists[popup.depIdx];
-                const currentItem = currentChecklist?.items[popup.itemIdx];
+                const currentChecklist = checklists.find(cl => cl._id === popup.checklistId || cl.department === popup.departmentId || cl.department?._id === popup.departmentId);
+                const currentItem = currentChecklist?.items.find(it => it._id === popup.itemId);
                 return (
                   <ChecklistItemPopup
                     mode="detail"
@@ -625,14 +625,20 @@ const ProjectDetail = () => {
               })()
             )}
             {popup && popup.mode === 'complete' && (
-              <ChecklistItemPopup
-                mode="complete"
-                onClose={() => setPopup(null)}
-                title={checklists[popup.depIdx]?.items[popup.itemIdx]?.content}
-                itemId={popup.itemId}
-                refreshChecklists={refreshChecklists}
-                isAdmin={isAdmin}
-              />
+              (() => {
+                const currentChecklist = checklists.find(cl => cl._id === popup.checklistId || cl.department === popup.departmentId || cl.department?._id === popup.departmentId);
+                const currentItem = currentChecklist?.items.find(it => it._id === popup.itemId);
+                return (
+                  <ChecklistItemPopup
+                    mode="complete"
+                    onClose={() => setPopup(null)}
+                    title={currentItem?.content}
+                    itemId={popup.itemId}
+                    refreshChecklists={refreshChecklists}
+                    isAdmin={isAdmin}
+                  />
+                );
+              })()
             )}
           </div>
         )}
