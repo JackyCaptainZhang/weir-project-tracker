@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/weir-project-tracker/static/css/main.f855e6bc.css",
+    "main.js": "/weir-project-tracker/static/js/main.3efb6fed.js",
+    "static/js/453.8ab44547.chunk.js": "/weir-project-tracker/static/js/453.8ab44547.chunk.js",
+    "index.html": "/weir-project-tracker/index.html",
+    "main.f855e6bc.css.map": "/weir-project-tracker/static/css/main.f855e6bc.css.map",
+    "main.3efb6fed.js.map": "/weir-project-tracker/static/js/main.3efb6fed.js.map",
+    "453.8ab44547.chunk.js.map": "/weir-project-tracker/static/js/453.8ab44547.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f855e6bc.css",
+    "static/js/main.3efb6fed.js"
+  ]
+}
