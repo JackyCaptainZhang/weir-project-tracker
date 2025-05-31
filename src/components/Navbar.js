@@ -63,7 +63,10 @@ const Navbar = () => {
     localStorage.removeItem('user');
     navigate('/login');
   };
-  // TODO: 后续根据用户权限动态渲染菜单
+
+  // 判断是否为登录或注册页面
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
   return (
     <>
       {/* 弹框样式 */}
@@ -115,67 +118,69 @@ const Navbar = () => {
           <img src="/weir-project-tracker/WeirLogo.png" alt="Weir Logo" style={{ height: '28px', marginBottom: '5px' }} />
           <span style={{ fontSize: 18, fontWeight: 700, color: '#00325c', letterSpacing: 1 }}>Project Tracking System</span>
         </div>
-        {/* 下方菜单和用户信息 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 1600, padding: '0 40px' }}>
-          {/* 居中菜单单独一行 */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
-              {navs.map(nav => (
-                <Link
-                  key={nav.to}
-                  to={nav.to}
-                  style={{
-                    textDecoration: 'none',
-                    color: location.pathname.match(nav.match) ? '#b48a00' : 'black',
-                    fontWeight: location.pathname.match(nav.match) ? 700 : 400,
-                    borderBottom: location.pathname.match(nav.match) ? '2px solid #b48a00' : 'none',
-                    paddingBottom: 2
-                  }}
-                >
-                  {nav.label}
-                </Link>
-              ))}
-              {canCreateProject && (
-                <Link to="/create" style={{ textDecoration: 'none', color: location.pathname === '/create' ? '#b48a00' : 'black', fontWeight: location.pathname === '/create' ? 700 : 400, borderBottom: location.pathname === '/create' ? '2px solid #b48a00' : 'none', paddingBottom: 2 }}>
-                  Create new Projects
-                </Link>
-              )}
-            </div>
-          </div>
-          {/* 用户信息区固定在右上角 */}
-          {user && user.username && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, position: 'fixed', right: 40, top: 24, zIndex: 1000 }}>
-              <button onClick={handleLogout} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>Log out</button>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Link to="/profile" style={{ textDecoration: 'none' }}>
-                  <div
-                    style={{ width: 50, height: 50, borderRadius: '50%', background: '#c8b89a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#222', textAlign: 'center' }}
-                    title={user.username || 'User'}
+        {/* 只在非登录/注册页面显示菜单和用户信息 */}
+        {!isAuthPage && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 1600, padding: '0 40px' }}>
+            {/* 居中菜单单独一行 */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+                {navs.map(nav => (
+                  <Link
+                    key={nav.to}
+                    to={nav.to}
+                    style={{
+                      textDecoration: 'none',
+                      color: location.pathname.match(nav.match) ? '#b48a00' : 'black',
+                      fontWeight: location.pathname.match(nav.match) ? 700 : 400,
+                      borderBottom: location.pathname.match(nav.match) ? '2px solid #b48a00' : 'none',
+                      paddingBottom: 2
+                    }}
                   >
-                    {displayName}
+                    {nav.label}
+                  </Link>
+                ))}
+                {canCreateProject && (
+                  <Link to="/create" style={{ textDecoration: 'none', color: location.pathname === '/create' ? '#b48a00' : 'black', fontWeight: location.pathname === '/create' ? 700 : 400, borderBottom: location.pathname === '/create' ? '2px solid #b48a00' : 'none', paddingBottom: 2 }}>
+                    Create new Projects
+                  </Link>
+                )}
+              </div>
+            </div>
+            {/* 用户信息区固定在右上角 */}
+            {user && user.username && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, position: 'fixed', right: 40, top: 24, zIndex: 1000 }}>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>Log out</button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <Link to="/profile" style={{ textDecoration: 'none' }}>
+                    <div
+                      style={{ width: 50, height: 50, borderRadius: '50%', background: '#c8b89a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#222', textAlign: 'center' }}
+                      title={user.username || 'User'}
+                    >
+                      {displayName}
+                    </div>
+                  </Link>
+                  <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>
+                    {user.department?.name || (typeof user.department === 'string' ? user.department : '') || user.departmentId || 'No Dept'}
                   </div>
-                </Link>
-                <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>
-                  {user.department?.name || (typeof user.department === 'string' ? user.department : '') || user.departmentId || 'No Dept'}
                 </div>
               </div>
-            </div>
-          )}
-          {/* 统计信息框固定在左上角 */}
-          {user && user.username && (
-            <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15, position: 'fixed', left: 24, top: 24, zIndex: 1000, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-              <div>Today: <b>{today}</b></div>
-              <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>Total UNFINISHED Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
-              <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>
-                Your Dept
-                <span style={{ fontSize: 13, marginLeft: 4, marginRight: 4, fontWeight: 'bold', color: '#222' }}>
-                  ({user.department?.name || (typeof user.department === 'string' ? user.department : '') || user.departmentId || 'No Dept'})
-                </span>
-                BLOCKED Project: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b>
+            )}
+            {/* 统计信息框固定在左上角 */}
+            {user && user.username && (
+              <div style={{ border: '2px solid red', borderRadius: 8, padding: '6px 18px', minWidth: 220, textAlign: 'right', background: '#fffbe6', color: '#333', fontSize: 15, position: 'fixed', left: 24, top: 24, zIndex: 1000, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <div>Today: <b>{today}</b></div>
+                <div onClick={() => setShowProjectModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>Total UNFINISHED Projects: <b style={{ color: '#d32f2f' }}>{unfinishedProjectCount}</b></div>
+                <div onClick={() => setShowChecklistModal(true)} style={{ cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>
+                  Your Dept
+                  <span style={{ fontSize: 13, marginLeft: 4, marginRight: 4, fontWeight: 'bold', color: '#222' }}>
+                    ({user.department?.name || (typeof user.department === 'string' ? user.department : '') || user.departmentId || 'No Dept'})
+                  </span>
+                  BLOCKED Project: <b style={{ color: '#b48a00' }}>{unfinishedChecklistCount}</b>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </nav>
     </>
   );

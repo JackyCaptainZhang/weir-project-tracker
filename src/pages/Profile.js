@@ -37,15 +37,12 @@ const Profile = () => {
             进入管理后台
           </button>
         )}
-        <h3>Action Logs made by you</h3>
+        <h3>You Can:</h3>
         <ul>
-          <li>2024-05-01 Created checklist item "xxx"</li>
-          <li>2024-05-02 Completed checklist item "yyy"</li>
-        </ul>
-        <h3>Manage</h3>
-        <ul>
-          <li>Manage your department checklist items</li>
+          <li>Manage YOUR department checklist items</li>
+          {user.isAdmin && <li>Manage ALL departments checklist items</li>}
           {user.isAdmin && <li>Manage Admin List (Only user in admin list has this option)</li>}
+          {user.isAdmin && <li>Add new department, change department name and order (Only user in admin list has this option)</li>}
         </ul>
       </div>
     </div>

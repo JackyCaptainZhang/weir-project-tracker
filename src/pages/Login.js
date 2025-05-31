@@ -49,9 +49,9 @@ const Login = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100 }}>
-      <h1>Welcome To Weir Project Tracker System</h1>
+      <h1>Welcome To Weir Project Tracking System</h1>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', width: 400 }}>
-        <label>User name or Email</label>
+        <label>Username / Email</label>
         <input value={account} onChange={e => setAccount(e.target.value)} style={{ marginBottom: 20, height: 32 }} />
         <label>Password</label>
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ marginBottom: 20, height: 32 }} />

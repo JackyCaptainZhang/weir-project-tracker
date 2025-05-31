@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -16,6 +16,8 @@ import AutoLogout from './components/AutoLogout';
 import './App.css';
 
 function App() {
+  // const location = useLocation();
+  // const hideNavbar = location.pathname === '/login' || location.pathname === '/register';
   return (
     <>
       <Navbar />
@@ -45,7 +47,7 @@ function App() {
         padding: '10px 0',
         boxShadow: '0 -2px 8px rgba(0,0,0,0.03)'
       }}>
-        V1.3 @Junchuan Zhang 2025
+        V1.4 @Junchuan Zhang 2025
       </footer>
     </>
   );

@@ -17,11 +17,17 @@ instance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 响应拦截器（可选：统一处理错误）
+// 响应拦截器
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 可在此处统一处理401等
+    if (error.response?.status === 401) {
+      // 清除本地存储的token和用户信息
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // 跳转到登录页
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
